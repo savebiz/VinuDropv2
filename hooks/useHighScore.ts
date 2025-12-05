@@ -22,7 +22,7 @@ export function useHighScore() {
                 const { data: scoreData, error: scoreError } = await supabase
                     .from("game_scores")
                     .select("score")
-                    .eq("wallet_address", account.address)
+                    .ilike("wallet_address", account.address)
                     .order("score", { ascending: false })
                     .limit(1)
                     .single();

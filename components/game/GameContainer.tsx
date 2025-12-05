@@ -58,7 +58,7 @@ export default function GameContainer() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         score,
-                        wallet: account.address
+                        wallet: account.address.toLowerCase()
                     })
                 });
             }
