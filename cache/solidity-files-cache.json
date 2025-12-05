@@ -1,0 +1,40 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\victor.sabo\\Git\\VinuChian Projects\\mkdir vinu-drop-v3\\vinu-drop\\contracts\\VinuEconomy.sol": {
+      "lastModificationDate": 1764946701276,
+      "contentHash": "1cbfe70c4d282e9ac0caf689ff4ca7e7",
+      "sourceName": "contracts/VinuEconomy.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.8.19"
+      ],
+      "artifacts": [
+        "VinuEconomy"
+      ]
+    }
+  }
+}

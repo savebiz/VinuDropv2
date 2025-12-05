@@ -1,0 +1,105 @@
+"use client";
+
+import React from "react";
+import { useGameStore } from "@/store/gameStore";
+import PhysicsScene from "./PhysicsScene";
+import { Panel } from "@/components/ui/Panel";
+import { Button } from "@/components/ui/Button";
+import { ORB_LEVELS } from "@/lib/constants";
+import { useTheme } from "@/components/ui/ThemeProvider";
+import { Trophy, RefreshCw, ShoppingBag, BarChart2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function GameContainer() {
+    const {
+        score,
+        bestScore,
+        nextOrbLevel,
+        isGameOver,
+        gameId,
+        resetGame
+    } = useGameStore();
+    const { theme } = useTheme();
+
+    return (
+        <div className="flex flex-col lg:flex-row gap-8 items-start justify-center p-4 lg:p-8 max-w-7xl mx-auto">
+            {/* Left Panel: Stats & Controls */}
+            <div className="flex flex-col gap-4 w-full lg:w-64 order-2 lg:order-1">
+                <Panel className="flex flex-col gap-2">
+                    <h2 className="text-sm uppercase tracking-wider opacity-70">Score</h2>
+                    <div className="text-4xl font-bold font-mono">{score.toLocaleString()}</div>
+                    <div className="text-xs opacity-50">Best: {bestScore.toLocaleString()}</div>
+                </Panel>
+
+                <Panel className="flex flex-col gap-4">
+                    <Button onClick={resetGame} variant="secondary" className="w-full flex items-center justify-center gap-2">
+                        <RefreshCw size={18} /> Play Again
+                    </Button>
+                    {/* Placeholders for other modals */}
+                    <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
+                        <ShoppingBag size={18} /> Shop
+                    </Button>
+                    <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
+                        <BarChart2 size={18} /> Leaderboard
+                    </Button>
+                </Panel>
+            </div>
+
+            {/* Center: Game Board */}
+            <div className="relative order-1 lg:order-2">
+                <Panel className={theme === 'cosmic' ? "shadow-[0_0_30px_rgba(0,240,255,0.3)] p-1" : "shadow-[inset_0_0_20px_rgba(0,0,0,0.1)] p-1"}>
+                    {/* Key-Based Remount: This forces a fresh instance of PhysicsScene on gameId change */}
+                    <PhysicsScene key={gameId} />
+                </Panel>
+
+                {/* Game Over Overlay */}
+                <AnimatePresence>
+                    {isGameOver && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-2xl"
+                        >
+                            <div className="text-center p-8 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl">
+                                <h2 className="text-4xl font-bold text-white mb-2">Game Over</h2>
+                                <p className="text-xl text-cyan-300 mb-6">Score: {score}</p>
+                                <Button onClick={resetGame} variant="primary" className="w-full">
+                                    Try Again
+                                </Button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Right Panel: Next Orb & Info */}
+            <div className="flex flex-col gap-4 w-full lg:w-64 order-3">
+                <Panel className="flex flex-col items-center gap-4">
+                    <h2 className="text-sm uppercase tracking-wider opacity-70">Next</h2>
+                    <div className="w-24 h-24 flex items-center justify-center bg-black/5 rounded-full relative">
+                        <div
+                            style={{
+                                width: ORB_LEVELS[nextOrbLevel].radius * 2,
+                                height: ORB_LEVELS[nextOrbLevel].radius * 2,
+                                backgroundColor: ORB_LEVELS[nextOrbLevel].color,
+                                borderRadius: '50%'
+                            }}
+                            className="shadow-lg"
+                        />
+                    </div>
+                    <p className="font-bold">{ORB_LEVELS[nextOrbLevel].name}</p>
+                </Panel>
+
+                <Panel>
+                    <h3 className="font-bold mb-2">How to Play</h3>
+                    <ul className="text-sm opacity-70 list-disc list-inside space-y-1">
+                        <li>Drop orbs to merge them</li>
+                        <li>Match same colors</li>
+                        <li>Don't cross the top line!</li>
+                    </ul>
+                </Panel>
+            </div>
+        </div>
+    );
+}
