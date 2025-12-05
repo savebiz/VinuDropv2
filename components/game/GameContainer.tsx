@@ -8,6 +8,7 @@ import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
 import { ORB_LEVELS } from "@/lib/constants";
 import { useTheme } from "@/components/ui/ThemeProvider";
+import { DailyRewardButton } from "@/components/game/DailyRewardButton";
 import { Trophy, RefreshCw, ShoppingBag, BarChart2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,6 +20,10 @@ import FullLeaderboardModal from "@/components/leaderboard/FullLeaderboardModal"
 import { useState } from "react";
 import { X } from "lucide-react";
 
+// import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { supabase } from "@/lib/supabaseClient";
+
 export default function GameContainer() {
     useHighScore(); // Fetch/Sync data
 
@@ -28,12 +33,42 @@ export default function GameContainer() {
         nextOrbLevel,
         isGameOver,
         gameId,
-        resetGame
+        resetGame,
+        username // Assuming username is in store now
     } = useGameStore();
     const { theme } = useTheme();
 
     const [showShop, setShowShop] = useState(false);
     const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+    // Play Again Safety
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [resetting, setResetting] = useState(false);
+
+    const handleConfirmReset = async () => {
+        setResetting(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                // Try to save score via API
+                await fetch('/api/submit-score', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        score,
+                        walletAddress: user.user_metadata?.wallet_address || "guest"
+                    })
+                });
+            }
+        } catch (e) {
+            console.error("Auto-save failed", e);
+        } finally {
+            // Always reset
+            resetGame();
+            setResetting(false);
+            setShowResetConfirm(false);
+        }
+    };
 
     return (
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center p-4 lg:p-8 max-w-7xl mx-auto">
@@ -47,9 +82,14 @@ export default function GameContainer() {
                 </Panel>
 
                 <Panel className="flex flex-col gap-4">
-                    <Button onClick={resetGame} variant="secondary" className="w-full flex items-center justify-center gap-2">
+                    <Button onClick={() => setShowResetConfirm(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
                         <RefreshCw size={18} /> Play Again
                     </Button>
+                    {/* Daily Reward Button */}
+                    <div className="w-full pb-2 border-b border-white/10 mb-2">
+                        <DailyRewardButton />
+                    </div>
+
                     <Button onClick={() => setShowShop(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
                         <ShoppingBag size={18} /> Shop
                     </Button>
@@ -117,6 +157,15 @@ export default function GameContainer() {
 
             {/* Modals */}
             <FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
+
+            <ConfirmDialog
+                isOpen={showResetConfirm}
+                onClose={() => setShowResetConfirm(false)}
+                onConfirm={handleConfirmReset}
+                title="Restart Game?"
+                description={`Are you sure? Your current score of ${score} will be submitted before resetting.`}
+                loading={resetting}
+            />
 
             <AnimatePresence>
                 {showShop && (

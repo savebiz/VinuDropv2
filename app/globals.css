@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --wall-color: #94a3b8; /* Slate-400 for Light Mode */
 }
 
 @theme inline {
@@ -16,6 +17,7 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --wall-color: #00FFFF; /* Cyan for Cosmic Mode */
   }
 }
 

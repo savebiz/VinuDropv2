@@ -3,12 +3,14 @@
 import React, { useState } from "react";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
-import { PayEmbed } from "thirdweb/react";
+import { PayEmbed, useActiveAccount } from "thirdweb/react";
 import { vinuChain } from "@/lib/chain";
-import { client } from "@/app/client"; // We need to create this client file
+import { client } from "@/app/client";
 
 export function WalletGatewayModal({ onClose }: { onClose: () => void }) {
     const [activeTab, setActiveTab] = useState<'buy' | 'transfer'>('buy');
+    const account = useActiveAccount();
+    const walletAddress = account?.address || "";
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
@@ -48,14 +50,30 @@ export function WalletGatewayModal({ onClose }: { onClose: () => void }) {
                             />
                         </div>
                     ) : (
-                        <div className="text-center space-y-4">
-                            <p>Scan to transfer VC</p>
-                            <div className="w-48 h-48 bg-white mx-auto rounded-lg flex items-center justify-center text-black">
-                                QR Code Placeholder
+                        <div className="text-center space-y-4 flex flex-col items-center">
+                            <p className="text-slate-300">Scan to send VinuChain (VC)</p>
+
+                            {/* QR Code Container - Forced White Background */}
+                            <div className="bg-white p-4 rounded-lg shadow-lg inline-block">
+                                {walletAddress ? (
+                                    <img
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${walletAddress}&bgcolor=ffffff&color=000000&margin=0`}
+                                        alt="Wallet Address QR"
+                                        className="w-48 h-48"
+                                    />
+                                ) : (
+                                    <div className="w-48 h-48 bg-gray-100 flex items-center justify-center text-black/50 text-xs">
+                                        Wallet not connected
+                                    </div>
+                                )}
                             </div>
-                            <p className="font-mono text-xs bg-black/20 p-2 rounded break-all">
-                                0xYourWalletAddress...
-                            </p>
+
+                            <div className="w-full max-w-[250px]">
+                                <p className="text-[10px] uppercase tracking-wider opacity-50 mb-1">Your Address</p>
+                                <p className="font-mono text-xs bg-black/40 p-3 rounded-lg break-all border border-white/10 select-all">
+                                    {walletAddress || "Please connect wallet"}
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>

@@ -4,15 +4,17 @@ import React, { useEffect, useRef, useState } from "react";
 import Matter from "matter-js";
 import { ORB_LEVELS, GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS, GAME_OVER_TIME } from "@/lib/constants";
 import { useGameStore } from "@/store/gameStore";
-import { useTheme } from "@/components/ui/ThemeProvider";
 
-export default function PhysicsScene() {
+// Wrap in React.memo to prevent re-renders from parent state changes (like Theme)
+const PhysicsScene = React.memo(() => {
     const sceneRef = useRef<HTMLDivElement>(null);
     const engineRef = useRef<Matter.Engine | null>(null);
     const renderRef = useRef<Matter.Render | null>(null);
     const runnerRef = useRef<Matter.Runner | null>(null);
 
-    const { theme } = useTheme();
+    // REMOVED useTheme hook to prevent dependency on theme context
+    // const { theme } = useTheme(); 
+
     const {
         addScore,
         setGameOver,
@@ -63,7 +65,6 @@ export default function PhysicsScene() {
         const Bodies = Matter.Bodies;
         const Runner = Matter.Runner;
         const Events = Matter.Events;
-        const Composite = Matter.Composite;
 
         const engine = Engine.create();
         const world = engine.world;
@@ -76,16 +77,21 @@ export default function PhysicsScene() {
                 width: GAME_WIDTH,
                 height: GAME_HEIGHT,
                 wireframes: false,
-                background: 'transparent',
+                background: 'transparent', // IMPORTANT: Transparent so CSS handles the color
                 pixelRatio: window.devicePixelRatio,
             },
         });
         renderRef.current = render;
 
         // Walls
+        // Use a neutral color that works in both themes, or rely on CSS overlay if needed.
+        // For now, using a Slate-500 which is visible on both white and black.
+        // If we want dynamic colors without remount, we'd need to update properties on theme change event,
+        // but that requires listening to theme without re-running THIS effect.
+        // Simpler for stability: Static Wall Color.
         const wallOptions = {
             isStatic: true,
-            render: { fillStyle: theme === 'cosmic' ? '#00FFFF' : '#94a3b8' }
+            render: { fillStyle: '#64748b' } // Slate-500
         };
 
         const ground = Bodies.rectangle(GAME_WIDTH / 2, GAME_HEIGHT + WALL_THICKNESS / 2 - 10, GAME_WIDTH, WALL_THICKNESS, wallOptions);
@@ -186,7 +192,7 @@ export default function PhysicsScene() {
             Engine.clear(engine);
             if (sensorTimer) clearTimeout(sensorTimer);
         };
-    }, [theme, addScore, setGameOver]);
+    }, [addScore, setGameOver]); // REMOVED 'theme' dependency
 
 
     // Handle Mouse/Touch Interaction
@@ -222,7 +228,9 @@ export default function PhysicsScene() {
     return (
         <div
             ref={sceneRef}
-            className="relative overflow-hidden rounded-xl cursor-pointer"
+            // Use standard background colors that transition with theme
+            // bg-white for light, bg-[#0a0a0a] for dark (matching globals)
+            className="relative overflow-hidden rounded-xl cursor-pointer bg-white dark:bg-[#0a0a0a] transition-colors duration-500"
             style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}
             onPointerDown={handlePointerDown}
         >
@@ -236,4 +244,9 @@ export default function PhysicsScene() {
             </div>
         </div>
     );
-}
+});
+
+PhysicsScene.displayName = "PhysicsScene";
+
+export default PhysicsScene;
+
