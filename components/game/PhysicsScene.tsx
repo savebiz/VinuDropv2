@@ -228,9 +228,8 @@ const PhysicsScene = React.memo(() => {
     return (
         <div
             ref={sceneRef}
-            // Use standard background colors that transition with theme
-            // bg-white for light, bg-[#0a0a0a] for dark (matching globals)
-            className="relative overflow-hidden rounded-xl cursor-pointer bg-white dark:bg-[#0a0a0a] transition-colors duration-500"
+            // Use CSS variables for background to ensure instant theme switching without re-render
+            className="relative overflow-hidden rounded-xl cursor-pointer bg-background transition-colors duration-500"
             style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}
             onPointerDown={handlePointerDown}
         >

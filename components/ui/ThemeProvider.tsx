@@ -20,6 +20,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const savedTheme = localStorage.getItem("vinu-theme") as Theme;
         if (savedTheme) {
             setTheme(savedTheme);
+            if (savedTheme === "cosmic") {
+                document.documentElement.classList.add("dark");
+            } else {
+                document.documentElement.classList.remove("dark");
+            }
+        } else {
+            // Default to cosmic
+            document.documentElement.classList.add("dark");
         }
     }, []);
 
@@ -27,6 +35,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const newTheme = theme === "cosmic" ? "ceramic" : "cosmic";
         setTheme(newTheme);
         localStorage.setItem("vinu-theme", newTheme);
+
+        if (newTheme === "cosmic") {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
     };
 
     return (
