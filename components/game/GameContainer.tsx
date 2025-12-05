@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import { useActiveAccount } from "thirdweb/react"; // Add this import
 import { useGameStore } from "@/store/gameStore";
 import PhysicsScene from "./PhysicsScene";
 import { Panel } from "@/components/ui/Panel";
@@ -45,18 +46,19 @@ export default function GameContainer() {
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [resetting, setResetting] = useState(false);
 
+    const account = useActiveAccount(); // Use Thirdweb account
+
     const handleConfirmReset = async () => {
         setResetting(true);
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
+            if (account && account.address) {
                 // Try to save score via API
                 await fetch('/api/submit-score', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         score,
-                        wallet: user.user_metadata?.wallet_address || "guest"
+                        wallet: account.address
                     })
                 });
             }
