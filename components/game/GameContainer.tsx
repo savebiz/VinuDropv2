@@ -1,12 +1,4 @@
-"use client";
 
-import React from "react";
-import { useGameStore } from "@/store/gameStore";
-import PhysicsScene from "./PhysicsScene";
-import { Panel } from "@/components/ui/Panel";
-import { Button } from "@/components/ui/Button";
-import { ORB_LEVELS } from "@/lib/constants";
-import { useTheme } from "@/components/ui/ThemeProvider";
 "use client";
 
 import React from "react";
