@@ -7,19 +7,41 @@ import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
 import { ORB_LEVELS } from "@/lib/constants";
 import { useTheme } from "@/components/ui/ThemeProvider";
+"use client";
+
+import React from "react";
+import { useGameStore } from "@/store/gameStore";
+import PhysicsScene from "./PhysicsScene";
+import { Panel } from "@/components/ui/Panel";
+import { Button } from "@/components/ui/Button";
+import { ORB_LEVELS } from "@/lib/constants";
+import { useTheme } from "@/components/ui/ThemeProvider";
 import { Trophy, RefreshCw, ShoppingBag, BarChart2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import ProfileModal from "@/components/ui/ProfileModal";
+import { useHighScore } from "@/hooks/useHighScore";
+
+import { ShopPanel } from "@/components/shop/ShopPanel";
+import FullLeaderboardModal from "@/components/leaderboard/FullLeaderboardModal";
+import { useState } from "react";
+import { X } from "lucide-react";
+
 export default function GameContainer() {
+    useHighScore(); // Fetch/Sync data
+
     const {
         score,
-        bestScore,
+        highScore,
         nextOrbLevel,
         isGameOver,
         gameId,
         resetGame
     } = useGameStore();
     const { theme } = useTheme();
+
+    const [showShop, setShowShop] = useState(false);
+    const [showLeaderboard, setShowLeaderboard] = useState(false);
 
     return (
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center p-4 lg:p-8 max-w-7xl mx-auto">
@@ -28,18 +50,18 @@ export default function GameContainer() {
                 <Panel className="flex flex-col gap-2">
                     <h2 className="text-sm uppercase tracking-wider opacity-70">Score</h2>
                     <div className="text-4xl font-bold font-mono">{score.toLocaleString()}</div>
-                    <div className="text-xs opacity-50">Best: {bestScore.toLocaleString()}</div>
+                    <div className="text-xs opacity-50 mb-2">Best: {highScore.toLocaleString()}</div>
+                    <ProfileModal />
                 </Panel>
 
                 <Panel className="flex flex-col gap-4">
                     <Button onClick={resetGame} variant="secondary" className="w-full flex items-center justify-center gap-2">
                         <RefreshCw size={18} /> Play Again
                     </Button>
-                    {/* Placeholders for other modals */}
-                    <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
+                    <Button onClick={() => setShowShop(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
                         <ShoppingBag size={18} /> Shop
                     </Button>
-                    <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
+                    <Button onClick={() => setShowLeaderboard(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
                         <BarChart2 size={18} /> Leaderboard
                     </Button>
                 </Panel>
@@ -100,6 +122,25 @@ export default function GameContainer() {
                     </ul>
                 </Panel>
             </div>
+
+            {/* Modals */}
+            <FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
+
+            <AnimatePresence>
+                {showShop && (
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                    >
+                        <div className="relative w-full max-w-md">
+                            <button onClick={() => setShowShop(false)} className="absolute -top-10 right-0 text-white hover:text-cyan-400">
+                                <X size={32} />
+                            </button>
+                            <ShopPanel />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

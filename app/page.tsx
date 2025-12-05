@@ -7,6 +7,7 @@ import { vinuChain } from "@/lib/chain";
 import { ThemeProvider, useTheme } from "@/components/ui/ThemeProvider";
 import GameContainer from "@/components/game/GameContainer";
 import { Button } from "@/components/ui/Button";
+import NetworkBanner from "@/components/ui/NetworkBanner";
 import { Moon, Sun } from "lucide-react";
 
 function AppContent() {
@@ -14,6 +15,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <NetworkBanner />
       {/* Header */}
       <header className="p-4 flex justify-between items-center z-10 relative">
         <div className="flex items-center gap-2">

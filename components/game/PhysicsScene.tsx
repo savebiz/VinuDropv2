@@ -18,11 +18,40 @@ export default function PhysicsScene() {
         setGameOver,
         nextOrbLevel,
         setNextOrbLevel,
-        setScore
+        reviveTrigger
     } = useGameStore();
 
-    const [currentOrb, setCurrentOrb] = useState<Matter.Body | null>(null);
     const [canDrop, setCanDrop] = useState(true);
+
+    // Revive Logic (Halve Protocol)
+    useEffect(() => {
+        if (reviveTrigger === 0 || !engineRef.current) return;
+
+        const world = engineRef.current.world;
+        const bodies = Matter.Composite.allBodies(world);
+
+        // Filter dynamic bodies (orbs) - excluding sensors and walls
+        const orbs = bodies.filter(b => !b.isStatic && b.label !== 'sensor');
+
+        if (orbs.length === 0) return;
+
+        // Sort by Y position (ascending = top to bottom)
+        // Smaller Y is higher (closer to top). 
+        // We want to remove the TOP 50% (most dangerous ones).
+        orbs.sort((a, b) => a.position.y - b.position.y);
+
+        const countToRemove = Math.floor(orbs.length / 2);
+        const toRemove = orbs.slice(0, countToRemove);
+
+        // Remove them
+        toRemove.forEach(body => {
+            Matter.World.remove(world, body);
+        });
+
+        // Resume game if over
+        setGameOver(false);
+
+    }, [reviveTrigger, setGameOver]);
 
     useEffect(() => {
         if (!sceneRef.current) return;
@@ -54,18 +83,14 @@ export default function PhysicsScene() {
         renderRef.current = render;
 
         // Walls
-        const ground = Bodies.rectangle(GAME_WIDTH / 2, GAME_HEIGHT + WALL_THICKNESS / 2 - 10, GAME_WIDTH, WALL_THICKNESS, {
+        const wallOptions = {
             isStatic: true,
             render: { fillStyle: theme === 'cosmic' ? '#00FFFF' : '#94a3b8' }
-        });
-        const leftWall = Bodies.rectangle(0 - WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT * 2, {
-            isStatic: true,
-            render: { fillStyle: theme === 'cosmic' ? '#00FFFF' : '#94a3b8' }
-        });
-        const rightWall = Bodies.rectangle(GAME_WIDTH + WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT * 2, {
-            isStatic: true,
-            render: { fillStyle: theme === 'cosmic' ? '#00FFFF' : '#94a3b8' }
-        });
+        };
+
+        const ground = Bodies.rectangle(GAME_WIDTH / 2, GAME_HEIGHT + WALL_THICKNESS / 2 - 10, GAME_WIDTH, WALL_THICKNESS, wallOptions);
+        const leftWall = Bodies.rectangle(0 - WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT * 2, wallOptions);
+        const rightWall = Bodies.rectangle(GAME_WIDTH + WALL_THICKNESS / 2, GAME_HEIGHT / 2, WALL_THICKNESS, GAME_HEIGHT * 2, wallOptions);
 
         World.add(world, [ground, leftWall, rightWall]);
 
@@ -78,7 +103,6 @@ export default function PhysicsScene() {
                 const bodyB = pair.bodyB;
 
                 // Check if both bodies are orbs (have a level property)
-                // We attach 'level' to the body object when creating it
                 // @ts-ignore
                 if (bodyA.level !== undefined && bodyB.level !== undefined && bodyA.level === bodyB.level) {
                     // @ts-ignore
@@ -101,10 +125,7 @@ export default function PhysicsScene() {
                         World.add(world, newOrb);
                         addScore(ORB_LEVELS[level].score);
                     } else {
-                        // Max level merge - just remove and give big points?
-                        // Or keep them? Standard Suika removes them or keeps them as max.
-                        // Let's keep them as max for now, or just remove if they merge?
-                        // Usually two max orbs merging disappear.
+                        // Max level merge
                         World.remove(world, [bodyA, bodyB]);
                         addScore(ORB_LEVELS[level].score * 2);
                     }
@@ -112,25 +133,12 @@ export default function PhysicsScene() {
             });
         });
 
-        // Game Over Check
-        Events.on(engine, "afterUpdate", () => {
-            const bodies = Composite.allBodies(world);
-            for (const body of bodies) {
-                if (!body.isStatic && body.position.y < 100 && body.velocity.y > -0.1 && body.velocity.y < 0.1) {
-                    // Simple check: if a body is near the top and stable.
-                    // A more robust check would involve a sensor and a timer.
-                    // For this MVP, we'll use a simple height check + time.
-                    // Implementing a proper sensor is better but complex for this snippet.
-                    // Let's stick to the "Sensor at top" requirement.
-                }
-            }
-        });
-
         // Top Sensor
-        const sensor = Bodies.rectangle(GAME_WIDTH / 2, 50, GAME_WIDTH, 10, {
+        const sensor = Bodies.rectangle(GAME_WIDTH / 2, 100, GAME_WIDTH, 10, {
             isStatic: true,
             isSensor: true,
-            render: { visible: false } // Invisible sensor
+            label: 'sensor',
+            render: { visible: false } // Invisible sensor, visualized by CSS overlay
         });
         World.add(world, sensor);
 
@@ -178,10 +186,8 @@ export default function PhysicsScene() {
             Engine.clear(engine);
             if (sensorTimer) clearTimeout(sensorTimer);
         };
-    }, [theme, addScore, setGameOver]); // Re-run if theme changes to update wall colors? 
-    // Actually, updating wall colors dynamically is better than remounting.
-    // But for now, let's just stick to the initial theme or force remount on theme change if needed.
-    // The user asked for Key-Based Remount on Game Reset, which is handled in parent.
+    }, [theme, addScore, setGameOver]);
+
 
     // Handle Mouse/Touch Interaction
     const handlePointerDown = (e: React.PointerEvent) => {
@@ -191,12 +197,7 @@ export default function PhysicsScene() {
         if (!rect) return;
 
         const x = e.clientX - rect.left;
-        // Clamp x
         const clampedX = Math.max(ORB_LEVELS[nextOrbLevel].radius, Math.min(GAME_WIDTH - ORB_LEVELS[nextOrbLevel].radius, x));
-
-        // Create a preview orb or just drop it?
-        // Suika usually lets you move a "cloud" or "claw" and then click to drop.
-        // Here we'll implement: Click/Tap to drop at that X position.
 
         const orb = Matter.Bodies.circle(clampedX, 50, ORB_LEVELS[nextOrbLevel].radius, {
             restitution: 0.3,
@@ -215,31 +216,8 @@ export default function PhysicsScene() {
 
         setTimeout(() => {
             setCanDrop(true);
-        }, 500); // Delay before next drop
+        }, 500);
     };
-
-    // Power Ups
-    const shake = () => {
-        if (!engineRef.current) return;
-        const bodies = Matter.Composite.allBodies(engineRef.current.world);
-        bodies.forEach(body => {
-            if (!body.isStatic) {
-                Matter.Body.applyForce(body, body.position, {
-                    x: (Math.random() - 0.5) * 0.1,
-                    y: -0.05 // Upward jolt
-                });
-            }
-        });
-    };
-
-    // Expose shake to parent via ref? Or use store?
-    // Ideally, we should use a command pattern or context, but for simplicity, 
-    // we can listen to a store trigger or just put buttons inside this component?
-    // The design says "Power-Ups" but doesn't specify where the buttons are.
-    // Assuming they are in the UI overlay.
-    // Let's attach shake to the window or store for now, or better, make this component handle it via props/store.
-    // But wait, the request says "PhysicsScene component MUST be rendered as <PhysicsScene key={gameId}... />".
-    // So internal state is reset.
 
     return (
         <div
@@ -248,7 +226,14 @@ export default function PhysicsScene() {
             style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}
             onPointerDown={handlePointerDown}
         >
-            {/* Overlay UI could go here if needed, but we'll keep it clean */}
+            {/* Danger Line Overlay */}
+            {/* Positioned at Y=100 which is where the sensor is */}
+            <div
+                className="absolute w-full border-b-2 border-red-600 border-dashed z-50 pointer-events-none animate-pulse"
+                style={{ top: '100px' }}
+            >
+                <div className="absolute right-0 -top-6 text-red-600 text-xs font-bold bg-black/50 px-2 py-1 rounded">DANGER</div>
+            </div>
         </div>
     );
 }
