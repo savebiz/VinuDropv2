@@ -56,7 +56,7 @@ export default function GameContainer() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         score,
-                        walletAddress: user.user_metadata?.wallet_address || "guest"
+                        wallet: user.user_metadata?.wallet_address || "guest"
                     })
                 });
             }
