@@ -41,8 +41,17 @@ export const useGameStore = create<GameState>((set, get) => ({
     strikes: 0,
     reviveTrigger: 0,
 
-    setScore: (score) => set({ score }),
-    addScore: (points) => set((state) => ({ score: state.score + points })),
+    setScore: (score) => set((state) => ({
+        score,
+        highScore: Math.max(state.highScore, score)
+    })),
+    addScore: (points) => set((state) => {
+        const newScore = state.score + points;
+        return {
+            score: newScore,
+            highScore: Math.max(state.highScore, newScore)
+        };
+    }),
     setHighScore: (score) => set({ highScore: score }),
     setUsername: (name) => set({ username: name }),
     setGameOver: (isOver) => set({ isGameOver: isOver }),

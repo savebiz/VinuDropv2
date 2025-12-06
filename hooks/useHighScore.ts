@@ -25,7 +25,7 @@ export function useHighScore() {
                     .ilike("wallet_address", account.address)
                     .order("score", { ascending: false })
                     .limit(1)
-                    .single();
+                    .maybeSingle();
 
                 if (scoreData) {
                     setHighScore(scoreData.score);
