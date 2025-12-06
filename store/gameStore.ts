@@ -26,7 +26,9 @@ interface GameState {
     setSavedOrbs: (orbs: SavedOrb[]) => void;
 
     // ... actions ...
+    // ... actions ...
     setScore: (score: number) => void;
+    resetGame: () => void;
     // ...
 }
 
