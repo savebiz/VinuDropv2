@@ -25,11 +25,21 @@ interface GameState {
     savedOrbs: SavedOrb[];
     setSavedOrbs: (orbs: SavedOrb[]) => void;
 
-    // ... actions ...
-    // ... actions ...
+    // Actions
     setScore: (score: number) => void;
+    addScore: (points: number) => void;
+    setHighScore: (score: number) => void;
+    setUsername: (name: string) => void;
+    setGameOver: (isOver: boolean) => void;
+    setNextOrbLevel: (level: number) => void;
     resetGame: () => void;
-    // ...
+
+    // Inventory Actions
+    addShakes: (amount: number) => void;
+    useShake: () => boolean;
+    addStrikes: (amount: number) => void;
+    useStrike: () => boolean;
+    triggerRevive: () => void;
 }
 
 export const useGameStore = create<GameState>()(
