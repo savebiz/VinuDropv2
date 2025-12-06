@@ -84,6 +84,19 @@ export default function GameContainer() {
         }
     };
 
+    // Warn on Refresh/Close if game is active
+    React.useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (score > 0 && !isGameOver) {
+                e.preventDefault();
+                e.returnValue = ''; // Trigger browser default warning
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [score, isGameOver]);
+
     return (
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center p-4 lg:p-8 max-w-7xl mx-auto">
             {/* Left Panel: Stats & Controls */}

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface GameState {
     score: number;
@@ -29,57 +30,72 @@ interface GameState {
     triggerRevive: () => void;
 }
 
-export const useGameStore = create<GameState>((set, get) => ({
-    score: 0,
-    highScore: 0,
-    username: null,
-    isGameOver: false,
-    nextOrbLevel: 0,
-    gameId: crypto.randomUUID(),
+export const useGameStore = create<GameState>()(
+    persist(
+        (set, get) => ({
+            score: 0,
+            highScore: 0,
+            username: null,
+            isGameOver: false,
+            nextOrbLevel: 0,
+            gameId: crypto.randomUUID(),
 
-    shakes: 0,
-    strikes: 0,
-    reviveTrigger: 0,
+            shakes: 0,
+            strikes: 0,
+            reviveTrigger: 0,
 
-    setScore: (score) => set((state) => ({
-        score,
-        highScore: Math.max(state.highScore, score)
-    })),
-    addScore: (points) => set((state) => {
-        const newScore = state.score + points;
-        return {
-            score: newScore,
-            highScore: Math.max(state.highScore, newScore)
-        };
-    }),
-    setHighScore: (score) => set({ highScore: score }),
-    setUsername: (name) => set({ username: name }),
-    setGameOver: (isOver) => set({ isGameOver: isOver }),
-    setNextOrbLevel: (level) => set({ nextOrbLevel: level }),
-    resetGame: () => set({
-        score: 0,
-        isGameOver: false,
-        nextOrbLevel: Math.floor(Math.random() * 5), // Start with random small orb
-        gameId: crypto.randomUUID(), // Force remount
-    }),
+            setScore: (score) => set((state) => ({
+                score,
+                highScore: Math.max(state.highScore, score)
+            })),
+            addScore: (points) => set((state) => {
+                const newScore = state.score + points;
+                return {
+                    score: newScore,
+                    highScore: Math.max(state.highScore, newScore)
+                };
+            }),
+            setHighScore: (score) => set({ highScore: score }),
+            setUsername: (name) => set({ username: name }),
+            setGameOver: (isOver) => set({ isGameOver: isOver }),
+            setNextOrbLevel: (level) => set({ nextOrbLevel: level }),
+            resetGame: () => set({
+                score: 0,
+                isGameOver: false,
+                nextOrbLevel: Math.floor(Math.random() * 5),
+                gameId: crypto.randomUUID(),
+            }),
 
-    addShakes: (amount) => set((state) => ({ shakes: state.shakes + amount })),
-    useShake: () => {
-        const { shakes } = get();
-        if (shakes > 0) {
-            set({ shakes: shakes - 1 });
-            return true;
+            addShakes: (amount) => set((state) => ({ shakes: state.shakes + amount })),
+            useShake: () => {
+                const { shakes } = get();
+                if (shakes > 0) {
+                    set({ shakes: shakes - 1 });
+                    return true;
+                }
+                return false;
+            },
+            addStrikes: (amount) => set((state) => ({ strikes: state.strikes + amount })),
+            useStrike: () => {
+                const { strikes } = get();
+                if (strikes > 0) {
+                    set({ strikes: strikes - 1 });
+                    return true;
+                }
+                return false;
+            },
+            triggerRevive: () => set({ reviveTrigger: Date.now() }),
+        }),
+        {
+            name: 'vinu-drop-storage', // unique name
+            partialize: (state) => ({
+                // Only persist these fields
+                score: state.score,
+                highScore: state.highScore,
+                username: state.username,
+                shakes: state.shakes,
+                strikes: state.strikes,
+            }),
         }
-        return false;
-    },
-    addStrikes: (amount) => set((state) => ({ strikes: state.strikes + amount })),
-    useStrike: () => {
-        const { strikes } = get();
-        if (strikes > 0) {
-            set({ strikes: strikes - 1 });
-            return true;
-        }
-        return false;
-    },
-    triggerRevive: () => set({ reviveTrigger: Date.now() }),
-}));
+    )
+);
