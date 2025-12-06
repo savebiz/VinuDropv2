@@ -77,8 +77,8 @@ const PhysicsScene = React.memo(() => {
                 width: GAME_WIDTH,
                 height: GAME_HEIGHT,
                 wireframes: false,
-                background: 'transparent', // IMPORTANT: Transparent so CSS handles the color
-                pixelRatio: window.devicePixelRatio,
+                background: 'transparent',
+                pixelRatio: 1, // FORCE 1 to prevent massive canvas on high-DPI screens (fixes sluggishness)
             },
         });
         renderRef.current = render;
