@@ -42,7 +42,7 @@ function AppContent() {
               className: "!bg-cyan-600 !text-white !font-bold !rounded-xl"
             }}
             detailsButton={{
-              className: "!bg-white/10 !backdrop-blur-md !border !border-white/10"
+              className: "!bg-black/5 dark:!bg-white/10 !backdrop-blur-md !border !border-black/10 dark:!border-white/10 !text-black dark:!text-white"
             }}
           />
         </div>

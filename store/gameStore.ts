@@ -1,38 +1,39 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export interface SavedOrb {
+    x: number;
+    y: number;
+    radius: number;
+    level: number; // Store the actual level index
+}
+
 interface GameState {
     score: number;
     highScore: number;
     username: string | null;
     isGameOver: boolean;
     nextOrbLevel: number;
-    gameId: string; // UUID for key-based remount
+    gameId: string;
 
     // Inventory
     shakes: number;
     strikes: number;
     reviveTrigger: number;
 
-    setScore: (score: number) => void;
-    addScore: (points: number) => void;
-    setHighScore: (score: number) => void;
-    setUsername: (name: string) => void;
-    setGameOver: (isOver: boolean) => void;
-    setNextOrbLevel: (level: number) => void;
-    resetGame: () => void;
+    // Strict Persistence
+    savedOrbs: SavedOrb[];
+    setSavedOrbs: (orbs: SavedOrb[]) => void;
 
-    // Inventory Actions
-    addShakes: (amount: number) => void;
-    useShake: () => boolean;
-    addStrikes: (amount: number) => void;
-    useStrike: () => boolean;
-    triggerRevive: () => void;
+    // ... actions ...
+    setScore: (score: number) => void;
+    // ...
 }
 
 export const useGameStore = create<GameState>()(
     persist(
         (set, get) => ({
+            // ... defaults ...
             score: 0,
             highScore: 0,
             username: null,
@@ -43,7 +44,11 @@ export const useGameStore = create<GameState>()(
             shakes: 0,
             strikes: 0,
             reviveTrigger: 0,
+            savedOrbs: [],
 
+            setSavedOrbs: (orbs) => set({ savedOrbs: orbs }),
+
+            // ... actions ...
             setScore: (score) => set((state) => ({
                 score,
                 highScore: Math.max(state.highScore, score)
@@ -64,6 +69,7 @@ export const useGameStore = create<GameState>()(
                 isGameOver: false,
                 nextOrbLevel: Math.floor(Math.random() * 5),
                 gameId: crypto.randomUUID(),
+                savedOrbs: [], // Clear persistence on reset
             }),
 
             addShakes: (amount) => set((state) => ({ shakes: state.shakes + amount })),
@@ -95,6 +101,7 @@ export const useGameStore = create<GameState>()(
                 username: state.username,
                 shakes: state.shakes,
                 strikes: state.strikes,
+                savedOrbs: state.savedOrbs, // <--- PERSIST ORBS
             }),
         }
     )

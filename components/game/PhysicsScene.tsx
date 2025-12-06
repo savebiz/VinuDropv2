@@ -70,6 +70,29 @@ const PhysicsScene = React.memo(() => {
         const world = engine.world;
         engineRef.current = engine;
 
+        // --- DESERIALIZATION (Load Saved Orbs) ---
+        // We access the store via the hook, but since this is inside useEffect, we need to access the LATEST state
+        // or just use the values we got from props if we passed them.
+        // Zustand hook values 'savedOrbs' might be stale if closure captures it? 
+        // No, 'useEffect' runs once. 'useGameStore.getState()' is better for reading inside effect without dep.
+        const state = useGameStore.getState();
+        const savedOrbs = state.savedOrbs;
+        const isGameAlreadyOver = state.isGameOver;
+
+        if (savedOrbs && savedOrbs.length > 0 && !isGameAlreadyOver) {
+            console.log("Restoring session...", savedOrbs.length, "orbs");
+            savedOrbs.forEach(orbData => {
+                const orb = Bodies.circle(orbData.x, orbData.y, orbData.radius, {
+                    restitution: 0.3,
+                    render: { fillStyle: ORB_LEVELS[orbData.level].color }
+                });
+                // @ts-ignore
+                orb.level = orbData.level;
+                World.add(world, orb);
+            });
+        }
+        // -----------------------------------------
+
         const render = Render.create({
             element: sceneRef.current,
             engine: engine,
@@ -78,20 +101,14 @@ const PhysicsScene = React.memo(() => {
                 height: GAME_HEIGHT,
                 wireframes: false,
                 background: 'transparent',
-                pixelRatio: 1, // FORCE 1 to prevent massive canvas on high-DPI screens (fixes sluggishness)
+                pixelRatio: 1,
             },
         });
         renderRef.current = render;
 
-        // Walls
-        // Use a neutral color that works in both themes, or rely on CSS overlay if needed.
-        // For now, using a Slate-500 which is visible on both white and black.
-        // If we want dynamic colors without remount, we'd need to update properties on theme change event,
-        // but that requires listening to theme without re-running THIS effect.
-        // Simpler for stability: Static Wall Color.
         const wallOptions = {
             isStatic: true,
-            render: { fillStyle: '#64748b' } // Slate-500
+            render: { fillStyle: '#64748b' }
         };
 
         const ground = Bodies.rectangle(GAME_WIDTH / 2, GAME_HEIGHT + WALL_THICKNESS / 2 - 10, GAME_WIDTH, WALL_THICKNESS, wallOptions);
@@ -100,7 +117,6 @@ const PhysicsScene = React.memo(() => {
 
         World.add(world, [ground, leftWall, rightWall]);
 
-        // Collision Event
         Events.on(engine, "collisionStart", (event) => {
             const pairs = event.pairs;
 
@@ -108,7 +124,6 @@ const PhysicsScene = React.memo(() => {
                 const bodyA = pair.bodyA;
                 const bodyB = pair.bodyB;
 
-                // Check if both bodies are orbs (have a level property)
                 // @ts-ignore
                 if (bodyA.level !== undefined && bodyB.level !== undefined && bodyA.level === bodyB.level) {
                     // @ts-ignore
@@ -131,7 +146,6 @@ const PhysicsScene = React.memo(() => {
                         World.add(world, newOrb);
                         addScore(ORB_LEVELS[level].score);
                     } else {
-                        // Max level merge
                         World.remove(world, [bodyA, bodyB]);
                         addScore(ORB_LEVELS[level].score * 2);
                     }
@@ -139,12 +153,11 @@ const PhysicsScene = React.memo(() => {
             });
         });
 
-        // Top Sensor
         const sensor = Bodies.rectangle(GAME_WIDTH / 2, 100, GAME_WIDTH, 10, {
             isStatic: true,
             isSensor: true,
             label: 'sensor',
-            render: { visible: false } // Invisible sensor, visualized by CSS overlay
+            render: { visible: false }
         });
         World.add(world, sensor);
 
@@ -176,6 +189,24 @@ const PhysicsScene = React.memo(() => {
             }
         });
 
+        // --- SERIALIZATION (Auto-Save) ---
+        // Save state every 1 second to redundant writes (localStorage is sync)
+        const saveInterval = setInterval(() => {
+            if (useGameStore.getState().isGameOver) return; // Don't save if game over
+
+            const bodies = Matter.Composite.allBodies(world);
+            const orbsToSave = bodies
+                .filter(b => !b.isStatic && b.label !== 'sensor' && (b as any).level !== undefined)
+                .map(b => ({
+                    x: b.position.x,
+                    y: b.position.y,
+                    radius: (b as any).circleRadius || ORB_LEVELS[(b as any).level].radius,
+                    level: (b as any).level
+                }));
+
+            useGameStore.getState().setSavedOrbs(orbsToSave);
+        }, 1000);
+        // ---------------------------------
 
         const runner = Runner.create();
         runnerRef.current = runner;
@@ -183,6 +214,7 @@ const PhysicsScene = React.memo(() => {
         Render.run(render);
 
         return () => {
+            clearInterval(saveInterval); // Cleanup save timer
             Render.stop(render);
             Runner.stop(runner);
             if (render.canvas) {
