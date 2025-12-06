@@ -3,7 +3,7 @@
 
 -- 1. Drop old logic
 DROP FUNCTION IF EXISTS claim_daily_reward();
-DROP POLYCY IF EXISTS "Users can view own reward status" ON public.daily_rewards;
+DROP POLICY IF EXISTS "Users can view own reward status" ON public.daily_rewards;
 DROP TABLE IF EXISTS public.daily_rewards;
 
 -- 2. Create new table (Wallet Based)
