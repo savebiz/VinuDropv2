@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState } from "react";
 import { ThirdwebProvider, ConnectButton } from "thirdweb/react";
 import { client } from "./client";
@@ -19,8 +20,13 @@ function AppContent() {
       {/* Header */}
       <header className="p-4 flex justify-between items-center z-10 relative">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-cyan-500 rounded-full flex items-center justify-center text-black font-bold text-xl shadow-[0_0_15px_cyan]">
-            V
+          <div className="relative w-12 h-12">
+            <Image
+              src="/vinudrop-logo.png"
+              alt="VinuDrop"
+              fill
+              className="object-contain drop-shadow-[0_0_10px_rgba(6,182,212,0.6)]"
+            />
           </div>
           <h1 className="text-2xl font-bold tracking-tighter">VinuDrop</h1>
         </div>
