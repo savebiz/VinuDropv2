@@ -48,11 +48,10 @@ export default function GameContainer() {
 
     const account = useActiveAccount(); // Use Thirdweb account
 
-    const handleConfirmReset = async () => {
-        setResetting(true);
+    // Unified Score Submission Logic
+    const submitCurrentScore = async () => {
         try {
-            if (account && account.address) {
-                // Try to save score via API
+            if (account && account.address && score > 0) {
                 await fetch('/api/submit-score', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -63,9 +62,22 @@ export default function GameContainer() {
                 });
             }
         } catch (e) {
-            console.error("Auto-save failed", e);
+            console.error("Score submission failed", e);
+        }
+    };
+
+    // Auto-save on Game Over
+    React.useEffect(() => {
+        if (isGameOver && score > 0) {
+            submitCurrentScore();
+        }
+    }, [isGameOver, score, account]);
+
+    const handleConfirmReset = async () => {
+        setResetting(true);
+        try {
+            await submitCurrentScore(); // Re-use logic
         } finally {
-            // Always reset
             resetGame();
             setResetting(false);
             setShowResetConfirm(false);
@@ -85,7 +97,7 @@ export default function GameContainer() {
 
                 <Panel className="flex flex-col gap-4">
                     <Button onClick={() => setShowResetConfirm(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
-                        <RefreshCw size={18} /> Play Again
+                        <RefreshCw size={18} /> Restart
                     </Button>
                     {/* Daily Reward Button */}
                     <div className="w-full pb-2 border-b border-white/10 mb-2">
