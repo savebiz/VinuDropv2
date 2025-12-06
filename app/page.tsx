@@ -64,7 +64,7 @@ function AppContent() {
       </main>
 
       <footer className="p-4 text-center text-xs opacity-50">
-        Powered by VinuChain • Built with Next.js & Matter.js
+        Powered by VinuChain • Built with love by VinuChain Africa
       </footer>
     </div>
   );
