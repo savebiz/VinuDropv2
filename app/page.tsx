@@ -37,6 +37,7 @@ function AppContent() {
           <ConnectButton
             client={client}
             chain={vinuChain}
+            theme={theme === "cosmic" ? "dark" : "light"}
             connectButton={{
               label: "Connect Wallet",
               className: "!bg-cyan-600 !text-white !font-bold !rounded-xl"
