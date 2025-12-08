@@ -3,7 +3,7 @@ export const SOUNDS = {
     MERGE: '/sounds/merge.mp3',
     GAMEOVER: '/sounds/gameover.mp3',
     BEST_SCORE: '/sounds/best_score.mp3',
-    BGM: '/assets/bgm-cosmic.m4a',
+    BGM: '/assets/bgm-cosmic.mp3',
 };
 
 // Colors matching VinuChain gradient palette + some variations for each level
