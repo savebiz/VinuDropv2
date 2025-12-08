@@ -16,8 +16,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import ProfileModal from "@/components/ui/ProfileModal";
 import { useHighScore } from "@/hooks/useHighScore";
 
-import { ShopPanel } from "@/components/shop/ShopPanel";
-import FullLeaderboardModal from "@/components/leaderboard/FullLeaderboardModal";
+import dynamic from "next/dynamic";
+
+const ShopPanel = dynamic(() => import("@/components/shop/ShopPanel").then(mod => mod.ShopPanel), { ssr: false });
+const FullLeaderboardModal = dynamic(() => import("@/components/leaderboard/FullLeaderboardModal"), { ssr: false });
 import { useState } from "react";
 import VFXLayer from "@/components/game/VFXLayer";
 import { useScreenShake } from "@/hooks/useScreenShake";

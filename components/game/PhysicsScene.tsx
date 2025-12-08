@@ -122,7 +122,7 @@ const PhysicsScene = React.memo(() => {
         const isGameAlreadyOver = state.isGameOver;
 
         if (savedOrbs && savedOrbs.length > 0 && !isGameAlreadyOver) {
-            console.log("Restoring session...", savedOrbs.length, "orbs");
+
             savedOrbs.forEach(orbData => {
                 const orb = Bodies.circle(orbData.x, orbData.y, orbData.radius, {
                     restitution: 0.3,
