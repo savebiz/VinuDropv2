@@ -19,6 +19,8 @@ import { useHighScore } from "@/hooks/useHighScore";
 import { ShopPanel } from "@/components/shop/ShopPanel";
 import FullLeaderboardModal from "@/components/leaderboard/FullLeaderboardModal";
 import { useState } from "react";
+import VFXLayer from "@/components/game/VFXLayer";
+import { useScreenShake } from "@/hooks/useScreenShake";
 
 
 // import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -42,6 +44,11 @@ export default function GameContainer() {
 
     const [showShop, setShowShop] = useState(false);
     const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+    // Screen Shake Hook
+    const { x, y } = useScreenShake();
+
+    // Play Again Safety
 
     // Play Again Safety
     const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -175,8 +182,12 @@ export default function GameContainer() {
             {/* Center: Game Board */}
             <div className="relative order-1 lg:order-2">
                 <Panel className={theme === 'cosmic' ? "shadow-[0_0_30px_rgba(0,240,255,0.3)] p-1" : "shadow-[inset_0_0_20px_rgba(0,0,0,0.1)] p-1"}>
-                    {/* Key-Based Remount: This forces a fresh instance of PhysicsScene on gameId change */}
-                    <PhysicsScene key={gameId} />
+                    {/* Shake Wrapper */}
+                    <motion.div style={{ x, y }} className="relative">
+                        <VFXLayer />
+                        {/* Key-Based Remount: This forces a fresh instance of PhysicsScene on gameId change */}
+                        <PhysicsScene key={gameId} />
+                    </motion.div>
                 </Panel>
 
                 {/* Game Over Overlay */}
@@ -217,7 +228,9 @@ export default function GameContainer() {
                 <Panel className="flex flex-col items-center gap-4">
                     <h2 className="text-sm uppercase tracking-wider opacity-70">Next</h2>
                     <div className="w-24 h-24 flex items-center justify-center bg-black/5 rounded-full relative">
-                        <div
+                        <motion.div
+                            animate={{ scale: [1, 1.05, 1] }}
+                            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                             style={{
                                 width: ORB_LEVELS[nextOrbLevel].radius * 2,
                                 height: ORB_LEVELS[nextOrbLevel].radius * 2,

@@ -4,6 +4,9 @@ import React, { useEffect, useRef, useState } from "react";
 import Matter from "matter-js";
 import { ORB_LEVELS, GAME_WIDTH, GAME_HEIGHT, WALL_THICKNESS, GAME_OVER_TIME } from "@/lib/constants";
 import { useGameStore } from "@/store/gameStore";
+import { useGameAudio } from "@/hooks/useGameAudio";
+import { useVFXStore } from "@/store/vfxStore";
+import { PARTICLE_COLORS } from "@/lib/assets";
 
 // Wrap in React.memo to prevent re-renders from parent state changes (like Theme)
 const PhysicsScene = React.memo(() => {
@@ -24,8 +27,25 @@ const PhysicsScene = React.memo(() => {
         shakeTrigger,
         laserMode,
         useStrike,
-        toggleLaserMode
+        toggleLaserMode,
+        triggerShake // Get triggerShake
     } = useGameStore();
+
+    const { playMergeSound, playDropSound } = useGameAudio();
+    const { spawnEffect } = useVFXStore();
+
+    // Refs to avoid stale closures in Matter.js events
+    const actionsRef = useRef({
+        playMergeSound,
+        triggerShake,
+        spawnEffect,
+        addScore
+    });
+
+    // Update refs on render
+    useEffect(() => {
+        actionsRef.current = { playMergeSound, triggerShake, spawnEffect, addScore };
+    }, [playMergeSound, triggerShake, spawnEffect, addScore]);
 
     const [canDrop, setCanDrop] = useState(true);
 
@@ -167,10 +187,47 @@ const PhysicsScene = React.memo(() => {
                         newOrb.level = newLevel;
 
                         World.add(world, newOrb);
+                        World.add(world, newOrb);
+                        // addScore(ORB_LEVELS[level].score); <-- REMOVE direct call, use ref
+
+                        // --- JUICE START ---
+                        const { playMergeSound, triggerShake, spawnEffect, addScore } = actionsRef.current;
+
                         addScore(ORB_LEVELS[level].score);
+                        playMergeSound(level);
+
+                        // Shake: Level 0->1 (Tiny), Level 10 (Massive)
+                        // Formula: (level + 1) * 1.5
+                        const shakeIntensity = (level + 1) * 2;
+                        triggerShake(shakeIntensity);
+
+                        // VFX: Explosion
+                        spawnEffect({
+                            type: 'EXPLOSION',
+                            x: midX,
+                            y: midY,
+                            color: PARTICLE_COLORS[level] || '#fff'
+                        });
+
+                        // VFX: Score Floater
+                        spawnEffect({
+                            type: 'FLOATER',
+                            x: midX,
+                            y: midY,
+                            text: `+${ORB_LEVELS[level].score}`,
+                            color: '#fbbf24' // Amber-400
+                        });
+
+                        // VFX: Flash for high tier (Level 8+)
+                        if (newLevel >= 8) {
+                            spawnEffect({ type: 'FLASH', x: 0, y: 0 });
+                        }
+                        // --- JUICE END ---
                     } else {
                         World.remove(world, [bodyA, bodyB]);
-                        addScore(ORB_LEVELS[level].score * 2);
+                        // Max level merge (rare)
+                        actionsRef.current.addScore(ORB_LEVELS[level].score * 2);
+                        actionsRef.current.playMergeSound(level);
                     }
                 }
             });
@@ -259,31 +316,32 @@ const PhysicsScene = React.memo(() => {
 
         // --- LASER MODE ---
         if (laserMode) {
-            // Find bodies at point
+            // ... existing laser logic ...
             const bodies = Matter.Composite.allBodies(engineRef.current.world);
             const clickedBodies = Matter.Query.point(bodies, { x, y });
-
-            // Filter only dynamic orbs (not walls/sensors)
             const target = clickedBodies.find(b => !b.isStatic && b.label !== 'sensor');
 
             if (target) {
-                // Try to consume ammo
                 if (useStrike()) {
-                    // Vaporize!
                     Matter.World.remove(engineRef.current.world, target);
                     toggleLaserMode();
+                    // Audio for laser? Maybe drop sound for now
+                    playDropSound();
                 } else {
                     alert("Out of Precision Lasers!");
                     toggleLaserMode();
                 }
             }
-            return; // Don't drop an orb if we clicked to shoot
+            return;
         }
 
         // --- NORMAL DROP MODE ---
         if (!canDrop) return;
 
         const clampedX = Math.max(ORB_LEVELS[nextOrbLevel].radius, Math.min(GAME_WIDTH - ORB_LEVELS[nextOrbLevel].radius, x));
+
+        // Play Drop Sound
+        playDropSound();
 
         const orb = Matter.Bodies.circle(clampedX, 50, ORB_LEVELS[nextOrbLevel].radius, {
             restitution: 0.3,

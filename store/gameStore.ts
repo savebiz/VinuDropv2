@@ -17,6 +17,10 @@ interface GameState {
     gameId: string;
     startTime: number; // For anti-cheat legacy validation
 
+    // Audio
+    isMuted: boolean;
+    toggleMute: () => void;
+
     // Inventory
     shakes: number;
     strikes: number;
@@ -60,7 +64,8 @@ interface GameState {
 
     // Shake
     shakeTrigger: number;
-    triggerShake: () => void;
+    shakeIntensity: number; // Add intensity
+    triggerShake: (intensity?: number) => void;
 
     // Laser
     laserMode: boolean;
@@ -83,10 +88,13 @@ export const useGameStore = create<GameState>()(
             strikes: 0,
             reviveTrigger: 0,
             shakeTrigger: 0,
+            shakeIntensity: 0,
             savedOrbs: [],
             startTime: Date.now(),
             laserMode: false,
             cursorMode: 'default',
+            isMuted: false,
+            toggleMute: () => set((state) => ({ isMuted: !state.isMuted })),
 
             // Freebies Defaults
             freeShakes: 1,
@@ -180,7 +188,7 @@ export const useGameStore = create<GameState>()(
                 }
             })),
 
-            triggerShake: () => set({ shakeTrigger: Date.now() }),
+            triggerShake: (intensity = 1) => set({ shakeTrigger: Date.now(), shakeIntensity: intensity }),
 
             toggleLaserMode: () => set((state) => ({ laserMode: !state.laserMode, cursorMode: !state.laserMode ? 'crosshair' : 'default' })),
         }),
@@ -198,6 +206,7 @@ export const useGameStore = create<GameState>()(
                 lastFreebieResetDate: state.lastFreebieResetDate,
                 lastDailyRewardClaimDate: state.lastDailyRewardClaimDate,
                 savedOrbs: state.savedOrbs,
+                isMuted: state.isMuted,
             }),
         }
     )
