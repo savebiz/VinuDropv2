@@ -32,7 +32,8 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
         freeShakes,
         freeStrikes,
         consumeFreeShake,
-        consumeFreeStrike
+        consumeFreeStrike,
+        isGameOver // Added
     } = useGameStore();
 
     const buyItem = (itemName: string, price: string) => {
@@ -57,8 +58,8 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                 )}
             </div>
             <div className="space-y-4">
-                {/* Shake */}
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10">
+                {/* Shake - Disabled if Game Over */}
+                <div className={`flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10 transition-all ${isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
                     <div className="flex items-center gap-3">
                         <div className="bg-blue-500/20 p-2 rounded-lg text-blue-400">
                             <Zap size={20} />
@@ -70,6 +71,7 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                     </div>
                     {freeShakes > 0 ? (
                         <button
+                            disabled={isGameOver}
                             onClick={() => {
                                 if (consumeFreeShake()) {
                                     addShakes(5);
@@ -82,6 +84,7 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                         </button>
                     ) : (
                         <TransactionButton
+                            disabled={isGameOver}
                             transaction={() => buyItem("shake", "200")}
                             onTransactionConfirmed={() => {
                                 addShakes(5);
@@ -94,8 +97,8 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                     )}
                 </div>
 
-                {/* Precision Strike */}
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10">
+                {/* Precision Strike - Disabled if Game Over */}
+                <div className={`flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10 transition-all ${isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
                     <div className="flex items-center gap-3">
                         <div className="bg-red-500/20 p-2 rounded-lg text-red-400">
                             <Target size={20} />
@@ -107,6 +110,7 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                     </div>
                     {freeStrikes > 0 ? (
                         <button
+                            disabled={isGameOver}
                             onClick={() => {
                                 if (consumeFreeStrike()) {
                                     addStrikes(2);
@@ -119,6 +123,7 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                         </button>
                     ) : (
                         <TransactionButton
+                            disabled={isGameOver}
                             transaction={() => buyItem("strike", "250")}
                             onTransactionConfirmed={() => {
                                 addStrikes(2);
@@ -131,8 +136,8 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                     )}
                 </div>
 
-                {/* Revive */}
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10">
+                {/* Revive - Disabled if Game Active (NOT Game Over) */}
+                <div className={`flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10 transition-all ${!isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
                     <div className="flex items-center gap-3">
                         <div className="bg-green-500/20 p-2 rounded-lg text-green-400">
                             <HeartPulse size={20} />
@@ -143,6 +148,7 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                         </div>
                     </div>
                     <TransactionButton
+                        disabled={!isGameOver}
                         transaction={() => buyItem("revive", "1000")}
                         onTransactionConfirmed={() => {
                             triggerRevive();
