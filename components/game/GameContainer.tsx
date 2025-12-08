@@ -242,7 +242,9 @@ export default function GameContainer() {
                             />
                         )}
                     </div>
-                    <p className="font-bold">{ORB_LEVELS[nextOrbLevel].name}</p>
+                    <p className="font-bold min-h-[24px]">
+                        {useGameStore(state => state._hasHydrated) ? ORB_LEVELS[nextOrbLevel].name : ''}
+                    </p>
                 </Panel>
 
                 <Panel>
