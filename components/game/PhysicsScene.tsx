@@ -368,66 +368,66 @@ const PhysicsScene = React.memo(() => {
         }, 500);
     };
 
-    return (
-        // Dynamic Sizing
-        useEffect(() => {
-            if (!sceneRef.current || !renderRef.current || !engineRef.current) return;
 
-            const handleResize = () => {
-                if (!sceneRef.current || !renderRef.current) return;
+    // Dynamic Sizing
+    useEffect(() => {
+        if (!sceneRef.current || !renderRef.current || !engineRef.current) return;
 
-                const containerWidth = sceneRef.current.clientWidth;
-                const containerHeight = sceneRef.current.clientHeight;
+        const handleResize = () => {
+            if (!sceneRef.current || !renderRef.current) return;
 
-                const render = renderRef.current;
+            const containerWidth = sceneRef.current.clientWidth;
+            const containerHeight = sceneRef.current.clientHeight;
 
-                // Update canvas size
-                render.canvas.width = containerWidth;
-                render.canvas.height = containerHeight;
+            const render = renderRef.current;
 
-                // Calculate scale to fit the physics world (GAME_WIDTH x GAME_HEIGHT) into the container
-                // We want 'contain' behavior (show all physics world, may have letterboxing if aspect differs)
-                // Or 'cover' behavior? Requirement: "Jar remains in the middle... max-width on desktop"
-                // The container in GameContainer handles the max-width aspect ratio usually. 
-                // So we usually just want to match the physics world 1:1 if possible, or scale uniformly.
+            // Update canvas size
+            render.canvas.width = containerWidth;
+            render.canvas.height = containerHeight;
 
-                // Let's assume the container is resizing to match our desired aspect ratio roughly, 
-                // but we need to map the physics coordinates (0,0 -> GAME_WIDTH, GAME_HEIGHT) 
-                // to the canvas coordinates (0,0 -> containerWidth, containerHeight).
+            // Calculate scale to fit the physics world (GAME_WIDTH x GAME_HEIGHT) into the container
+            // We want 'contain' behavior (show all physics world, may have letterboxing if aspect differs)
+            // Or 'cover' behavior? Requirement: "Jar remains in the middle... max-width on desktop"
+            // The container in GameContainer handles the max-width aspect ratio usually. 
+            // So we usually just want to match the physics world 1:1 if possible, or scale uniformly.
 
-                const scaleX = containerWidth / GAME_WIDTH;
-                const scaleY = containerHeight / GAME_HEIGHT;
-                const scale = Math.min(scaleX, scaleY);
+            // Let's assume the container is resizing to match our desired aspect ratio roughly, 
+            // but we need to map the physics coordinates (0,0 -> GAME_WIDTH, GAME_HEIGHT) 
+            // to the canvas coordinates (0,0 -> containerWidth, containerHeight).
 
-                // Center the view
-                // render.bounds is the region of the physics world being viewed.
-                // If scale is 1, bounds is 0,0 to width,height.
-                // If scale is 0.5 (container is half size of physics), we effectively view a LARGER area if we don't zoom?
-                // Wait, Matter.Render automatically handles simple scaling if we set pixelRatio? No.
+            const scaleX = containerWidth / GAME_WIDTH;
+            const scaleY = containerHeight / GAME_HEIGHT;
+            const scale = Math.min(scaleX, scaleY);
 
-                // Correct approach for Matter.js Responsive Scaling:
-                // 1. Set render.options.width/height (logical size)
-                // 2. Set canvas width/height (display size)
-                // But standard Matter.Render doesn't auto-scale. We used lookAt usually.
+            // Center the view
+            // render.bounds is the region of the physics world being viewed.
+            // If scale is 1, bounds is 0,0 to width,height.
+            // If scale is 0.5 (container is half size of physics), we effectively view a LARGER area if we don't zoom?
+            // Wait, Matter.Render automatically handles simple scaling if we set pixelRatio? No.
 
-                // SIMPLER: Use Matter.Render.lookAt to center the view on the board center.
-                // Board Center: GAME_WIDTH/2, GAME_HEIGHT/2.
-                // Padding: Maybe add some padding.
+            // Correct approach for Matter.js Responsive Scaling:
+            // 1. Set render.options.width/height (logical size)
+            // 2. Set canvas width/height (display size)
+            // But standard Matter.Render doesn't auto-scale. We used lookAt usually.
 
-                Matter.Render.lookAt(render, {
-                    min: { x: 0, y: 0 },
-                    max: { x: GAME_WIDTH, y: GAME_HEIGHT }
-                });
+            // SIMPLER: Use Matter.Render.lookAt to center the view on the board center.
+            // Board Center: GAME_WIDTH/2, GAME_HEIGHT/2.
+            // Padding: Maybe add some padding.
 
-                // If we want exact pixel matching without blur, we might need to handle scaling manually context-wise, 
-                // but lookAt is the robust physics-engine way.
-            };
+            Matter.Render.lookAt(render, {
+                min: { x: 0, y: 0 },
+                max: { x: GAME_WIDTH, y: GAME_HEIGHT }
+            });
 
-            const resizeObserver = new ResizeObserver(() => handleResize());
-            resizeObserver.observe(sceneRef.current);
+            // If we want exact pixel matching without blur, we might need to handle scaling manually context-wise, 
+            // but lookAt is the robust physics-engine way.
+        };
 
-            return () => resizeObserver.disconnect();
-        }, []);
+        const resizeObserver = new ResizeObserver(() => handleResize());
+        resizeObserver.observe(sceneRef.current);
+
+        return () => resizeObserver.disconnect();
+    }, []);
 
     // ... existing Matter setup ...
     // BUT we need to remove the "width: GAME_WIDTH" style from the div to let it fill parent
