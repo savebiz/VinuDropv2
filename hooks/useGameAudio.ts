@@ -24,10 +24,10 @@ export const useGameAudio = () => {
     useEffect(() => {
         if (!soundsRef.current.drop && typeof window !== 'undefined') {
             // We attempt to load sounds. If files missing, state will remain 'unloaded' or error out.
-            soundsRef.current.drop = new Howl({ src: [SOUNDS.DROP], volume: 0.5, onLoadError: () => console.log("Drop sound missing, fallback to synth") });
-            soundsRef.current.merge = new Howl({ src: [SOUNDS.MERGE], volume: 0.6, onLoadError: () => console.log("Merge sound missing, fallback to synth") });
-            soundsRef.current.gameover = new Howl({ src: [SOUNDS.GAMEOVER], volume: 0.7, onLoadError: () => console.log("Gameover sound missing, fallback to synth") });
-            soundsRef.current.bestScore = new Howl({ src: [SOUNDS.BEST_SCORE], volume: 0.8, onLoadError: () => console.log("Best Score sound missing, fallback to synth") });
+            soundsRef.current.drop = new Howl({ src: [SOUNDS.DROP], volume: 0.5, onloaderror: () => console.log("Drop sound missing, fallback to synth") });
+            soundsRef.current.merge = new Howl({ src: [SOUNDS.MERGE], volume: 0.6, onloaderror: () => console.log("Merge sound missing, fallback to synth") });
+            soundsRef.current.gameover = new Howl({ src: [SOUNDS.GAMEOVER], volume: 0.7, onloaderror: () => console.log("Gameover sound missing, fallback to synth") });
+            soundsRef.current.bestScore = new Howl({ src: [SOUNDS.BEST_SCORE], volume: 0.8, onloaderror: () => console.log("Best Score sound missing, fallback to synth") });
         }
     }, []);
 
