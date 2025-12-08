@@ -15,9 +15,6 @@ const PhysicsScene = React.memo(() => {
     const renderRef = useRef<Matter.Render | null>(null);
     const runnerRef = useRef<Matter.Runner | null>(null);
 
-    // REMOVED useTheme hook to prevent dependency on theme context
-    // const { theme } = useTheme(); 
-
     const {
         addScore,
         setGameOver,
@@ -31,12 +28,14 @@ const PhysicsScene = React.memo(() => {
         triggerShake // Get triggerShake
     } = useGameStore();
 
-    const { playMergeSound, playDropSound } = useGameAudio();
+    const { playMergeSound, playDropSound, startBGM } = useGameAudio();
     const { spawnEffect } = useVFXStore();
 
     // Refs to avoid stale closures in Matter.js events
     const actionsRef = useRef({
         playMergeSound,
+        playDropSound,
+        startBGM,
         triggerShake,
         spawnEffect,
         addScore
@@ -44,8 +43,8 @@ const PhysicsScene = React.memo(() => {
 
     // Update refs on render
     useEffect(() => {
-        actionsRef.current = { playMergeSound, triggerShake, spawnEffect, addScore };
-    }, [playMergeSound, triggerShake, spawnEffect, addScore]);
+        actionsRef.current = { playMergeSound, playDropSound, startBGM, triggerShake, spawnEffect, addScore };
+    }, [playMergeSound, playDropSound, startBGM, triggerShake, spawnEffect, addScore]);
 
     const [canDrop, setCanDrop] = useState(true);
 
@@ -324,7 +323,7 @@ const PhysicsScene = React.memo(() => {
                     Matter.World.remove(engineRef.current.world, target);
                     toggleLaserMode();
                     // Audio for laser? Maybe drop sound for now
-                    playDropSound();
+                    actionsRef.current.playDropSound();
                 } else {
                     alert("Out of Precision Lasers!");
                     toggleLaserMode();
@@ -338,8 +337,9 @@ const PhysicsScene = React.memo(() => {
 
         const clampedX = Math.max(ORB_LEVELS[nextOrbLevel].radius, Math.min(GAME_WIDTH - ORB_LEVELS[nextOrbLevel].radius, x));
 
-        // Play Drop Sound
-        playDropSound();
+        // Play Drop Sound & Start BGM
+        actionsRef.current.playDropSound();
+        actionsRef.current.startBGM();
 
         const orb = Matter.Bodies.circle(clampedX, 50, ORB_LEVELS[nextOrbLevel].radius, {
             restitution: 0.3,
@@ -384,4 +384,3 @@ const PhysicsScene = React.memo(() => {
 PhysicsScene.displayName = "PhysicsScene";
 
 export default PhysicsScene;
-

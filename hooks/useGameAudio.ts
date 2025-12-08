@@ -13,12 +13,19 @@ export const useGameAudio = () => {
         merge: Howl | null;
         gameover: Howl | null;
         bestScore: Howl | null;
+        bgm: Howl | null;
     }>({
         drop: null,
         merge: null,
         gameover: null,
-        bestScore: null
+        bestScore: null,
+        bgm: null
     });
+
+    // Sync global mute state
+    useEffect(() => {
+        Howler.mute(isMuted);
+    }, [isMuted]);
 
     // Initialize sounds lazily or once
     useEffect(() => {
@@ -28,51 +35,58 @@ export const useGameAudio = () => {
             soundsRef.current.merge = new Howl({ src: [SOUNDS.MERGE], volume: 0.6, onloaderror: () => console.log("Merge sound missing, fallback to synth") });
             soundsRef.current.gameover = new Howl({ src: [SOUNDS.GAMEOVER], volume: 0.7, onloaderror: () => console.log("Gameover sound missing, fallback to synth") });
             soundsRef.current.bestScore = new Howl({ src: [SOUNDS.BEST_SCORE], volume: 0.8, onloaderror: () => console.log("Best Score sound missing, fallback to synth") });
+
+            // BGM
+            soundsRef.current.bgm = new Howl({
+                src: [SOUNDS.BGM],
+                volume: 0.4,
+                loop: true,
+                html5: true,
+                autoplay: false
+            });
+        }
+    }, []);
+
+    const startBGM = useCallback(() => {
+        // Only start if not already playing
+        if (soundsRef.current.bgm && !soundsRef.current.bgm.playing()) {
+            soundsRef.current.bgm.play();
+            soundsRef.current.bgm.fade(0, 0.4, 2000);
         }
     }, []);
 
     const playDropSound = useCallback(() => {
-        if (isMuted) return;
-
         // Fallback check: If howl exists but isn't loaded/ready, use Synth
         if (soundsRef.current.drop && soundsRef.current.drop.state() === 'loaded') {
             soundsRef.current.drop.play();
         } else {
-            audioSynth.playDrop();
+            if (!isMuted) audioSynth.playDrop(); // Manual mute check for synth
         }
     }, [isMuted]);
 
     const playMergeSound = useCallback((level: number) => {
-        if (isMuted) return;
-
         if (soundsRef.current.merge && soundsRef.current.merge.state() === 'loaded') {
             const rate = Math.max(0.5, 1.2 - (level * 0.05));
             const id = soundsRef.current.merge.play();
             soundsRef.current.merge.rate(rate, id);
         } else {
-            // Synth doesn't currently support pitch shifting per level in the basic version, 
-            // but we call the generic merge sound. 
-            audioSynth.playMerge();
+            if (!isMuted) audioSynth.playMerge();
         }
     }, [isMuted]);
 
     const playGameOverSound = useCallback(() => {
-        if (isMuted) return;
-
         if (soundsRef.current.gameover && soundsRef.current.gameover.state() === 'loaded') {
             soundsRef.current.gameover.play();
         } else {
-            audioSynth.playGameOver();
+            if (!isMuted) audioSynth.playGameOver();
         }
     }, [isMuted]);
 
     const playBestScoreSound = useCallback(() => {
-        if (isMuted) return;
-
         if (soundsRef.current.bestScore && soundsRef.current.bestScore.state() === 'loaded') {
             soundsRef.current.bestScore.play();
         } else {
-            audioSynth.playBestScore();
+            if (!isMuted) audioSynth.playBestScore();
         }
     }, [isMuted]);
 
@@ -80,6 +94,7 @@ export const useGameAudio = () => {
         playDropSound,
         playMergeSound,
         playGameOverSound,
-        playBestScoreSound
+        playBestScoreSound,
+        startBGM
     };
 };
