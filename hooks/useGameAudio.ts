@@ -39,9 +39,9 @@ export const useGameAudio = () => {
             // BGM
             soundsRef.current.bgm = new Howl({
                 src: [SOUNDS.BGM],
-                volume: 0.4,
+                volume: 0.2, // Reduced to 0.2 per request
                 loop: true,
-                html5: true,
+                html5: false, // Changed to false for smoother gapless looping (Web Audio API)
                 autoplay: false
             });
         }
@@ -51,7 +51,7 @@ export const useGameAudio = () => {
         // Only start if not already playing
         if (soundsRef.current.bgm && !soundsRef.current.bgm.playing()) {
             soundsRef.current.bgm.play();
-            soundsRef.current.bgm.fade(0, 0.4, 2000);
+            soundsRef.current.bgm.fade(0, 0.2, 2000); // Fade to 0.2
         }
     }, []);
 
