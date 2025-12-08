@@ -1,37 +1,24 @@
-import { useEffect, useState } from 'react';
-import { useSpring } from 'framer-motion';
+import { useEffect } from 'react';
+import { useAnimation } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
 
 export const useScreenShake = () => {
-    const { shakeTrigger, shakeIntensity } = useGameStore();
-
-    // We use springs for smooth recoil
-    const x = useSpring(0, { stiffness: 300, damping: 10 });
-    const y = useSpring(0, { stiffness: 300, damping: 10 });
+    const { shakeTrigger } = useGameStore();
+    const controls = useAnimation();
 
     useEffect(() => {
         if (shakeTrigger === 0) return;
 
-        // Intensity Multiplier
-        // Small Merge ~ 1.5 -> Shake ~2-3px
-        // Big Merge ~ 10 -> Shake ~15-20px
-        const power = Math.min(shakeIntensity, 20);
+        // "Very light" shake: uniform simple jitter
+        // No physics springs, just a quick keyframe sequence
+        controls.start({
+            x: [0, -2, 2, -1, 1, 0],
+            y: [0, -2, 2, 0],
+            transition: { duration: 0.2 } // Fast snap
+        });
 
-        // Random direction kicks
-        const kickX = (Math.random() - 0.5) * 2 * power;
-        const kickY = (Math.random() - 0.5) * 2 * power;
+    }, [shakeTrigger, controls]);
 
-        // Set value instantly
-        x.set(kickX);
-        y.set(kickY);
-
-        // Then return to 0 (spring automatically handles animation)
-        setTimeout(() => {
-            x.set(0);
-            y.set(0);
-        }, 50);
-
-    }, [shakeTrigger, shakeIntensity, x, y]);
-
-    return { x, y };
+    // Return the controls to be passed to 'animate' prop
+    return { controls };
 };

@@ -194,9 +194,8 @@ const PhysicsScene = React.memo(() => {
                         addScore(ORB_LEVELS[level].score);
                         playMergeSound(level);
 
-                        // Shake: DISABLED per user request (Retain logic, but don't trigger)
-                        // const shakeIntensity = (level + 1) * 2;
-                        // triggerShake(shakeIntensity);
+                        // Shake: Very Light (Fixed low intensity, logic handled in hook)
+                        triggerShake(1); // Intensity ignored by new hook but keeps API valid
 
                         // VFX: Explosion
                         spawnEffect({

@@ -46,7 +46,7 @@ export default function GameContainer() {
     const [showLeaderboard, setShowLeaderboard] = useState(false);
 
     // Screen Shake Hook
-    const { x, y } = useScreenShake();
+    const { controls } = useScreenShake();
 
     // Play Again Safety
 
@@ -183,7 +183,7 @@ export default function GameContainer() {
             <div className="relative order-1 lg:order-2">
                 <Panel className={theme === 'cosmic' ? "shadow-[0_0_30px_rgba(0,240,255,0.3)] p-1" : "shadow-[inset_0_0_20px_rgba(0,0,0,0.1)] p-1"}>
                     {/* Shake Wrapper */}
-                    <motion.div style={{ x, y }} className="relative">
+                    <motion.div animate={controls} className="relative">
                         <VFXLayer />
                         {/* Key-Based Remount: This forces a fresh instance of PhysicsScene on gameId change */}
                         <PhysicsScene key={gameId} />
