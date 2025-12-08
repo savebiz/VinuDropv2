@@ -194,10 +194,9 @@ const PhysicsScene = React.memo(() => {
                         addScore(ORB_LEVELS[level].score);
                         playMergeSound(level);
 
-                        // Shake: Level 0->1 (Tiny), Level 10 (Massive)
-                        // Formula: (level + 1) * 1.5
-                        const shakeIntensity = (level + 1) * 2;
-                        triggerShake(shakeIntensity);
+                        // Shake: DISABLED per user request (Retain logic, but don't trigger)
+                        // const shakeIntensity = (level + 1) * 2;
+                        // triggerShake(shakeIntensity);
 
                         // VFX: Explosion
                         spawnEffect({
