@@ -114,7 +114,7 @@ export default function GameContainer() {
                 <Panel className="flex flex-col gap-2">
                     <h2 className="text-sm uppercase tracking-wider opacity-70">Score</h2>
                     <div className="text-4xl font-bold font-mono">{score.toLocaleString()}</div>
-                    <div className="text-xs opacity-50 mb-2">Best: {highScore.toLocaleString()}</div>
+                    <div className="text-xs opacity-50 mb-2">Best: {account ? highScore.toLocaleString() : 0}</div>
                     <ProfileModal />
                 </Panel>
 
