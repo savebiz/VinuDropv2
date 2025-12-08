@@ -9,7 +9,8 @@ import { ThemeProvider, useTheme } from "@/components/ui/ThemeProvider";
 import GameContainer from "@/components/game/GameContainer";
 import { Button } from "@/components/ui/Button";
 import NetworkBanner from "@/components/ui/NetworkBanner";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Volume2, VolumeX } from "lucide-react";
+import { useGameStore } from "@/store/gameStore";
 
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
@@ -18,7 +19,7 @@ function AppContent() {
     <div className="min-h-screen flex flex-col">
       <NetworkBanner />
       {/* Header */}
-      <header className="p-4 flex justify-between items-center z-10 relative">
+      <header className="fixed top-0 left-0 right-0 p-4 flex justify-between items-center z-50 bg-background/80 backdrop-blur-md shadow-md transition-all">
         <div className="flex items-center gap-2">
           <div className="relative w-12 h-12">
             <Image
@@ -32,6 +33,19 @@ function AppContent() {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Mute Button */}
+          <Button
+            onClick={useGameStore((state) => state.toggleMute)}
+            variant="secondary"
+            className="p-2 rounded-full w-10 h-10 flex items-center justify-center group"
+          >
+            {useGameStore((state) => state.isMuted) ? (
+              <VolumeX size={20} className="text-white/70 group-hover:text-white" />
+            ) : (
+              <Volume2 size={20} className="text-cyan-400 group-hover:text-cyan-300" />
+            )}
+          </Button>
+
           <Button
             onClick={toggleTheme}
             variant="secondary"
@@ -42,7 +56,7 @@ function AppContent() {
 
           <ConnectButton
             client={client}
-            chain={activeChain}
+            chain={activeChain} // Pass activeChain to ConnectButton
             theme={theme === "cosmic" ? darkTheme({
               colors: {
                 modalBg: "#000000",
@@ -61,7 +75,7 @@ function AppContent() {
       </header>
 
       {/* Main Game Area */}
-      <main className="flex-1 relative">
+      <main className="flex-1 relative pt-24">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
           {theme === 'cosmic' && (

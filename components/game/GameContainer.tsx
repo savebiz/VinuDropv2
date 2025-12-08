@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { ORB_LEVELS } from "@/lib/constants";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { DailyRewardButton } from "@/components/game/DailyRewardButton";
-import { Trophy, RefreshCw, ShoppingBag, BarChart2, Zap, Target, HeartPulse, X, Volume2, VolumeX } from "lucide-react";
+import { Trophy, RefreshCw, ShoppingBag, BarChart2, Zap, Target, HeartPulse, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import ProfileModal from "@/components/ui/ProfileModal";
@@ -137,18 +137,6 @@ export default function GameContainer() {
 
     return (
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center p-4 lg:p-8 max-w-7xl mx-auto relative">
-            {/* Floating Mute Button */}
-            <button
-                onClick={useGameStore((state) => state.toggleMute)}
-                className="fixed top-4 right-4 z-[100] p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all shadow-lg group"
-            >
-                {useGameStore((state) => state.isMuted) ? (
-                    <VolumeX size={24} className="text-white/70 group-hover:text-white" />
-                ) : (
-                    <Volume2 size={24} className="text-cyan-400 group-hover:text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                )}
-            </button>
-
             {/* Left Panel: Stats & Controls */}
             <div className="flex flex-col gap-4 w-full lg:w-64 order-2 lg:order-1">
                 <Panel className="flex flex-col gap-2">
