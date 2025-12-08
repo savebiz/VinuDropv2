@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useActiveAccount } from "thirdweb/react";
 import { useGameStore } from "@/store/gameStore";
 import { supabase } from "@/lib/supabaseClient";
@@ -71,7 +72,7 @@ export default function ProfileModal() {
                 {username ? `👤 ${username}` : "👤 Set Username"}
             </Button>
 
-            {isOpen && (
+            {isOpen && typeof document !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
                     <div className="bg-[#1a1b26] border border-cyan-500/30 p-6 rounded-2xl w-full max-w-md shadow-[0_0_50px_rgba(0,255,255,0.1)] relative">
                         <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 text-white/50 hover:text-white">
@@ -100,7 +101,8 @@ export default function ProfileModal() {
                             </Button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );

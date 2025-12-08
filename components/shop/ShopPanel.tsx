@@ -10,7 +10,7 @@ import { prepareContractCall, toWei } from "thirdweb";
 import { VINU_ECONOMY_CONTRACT_ADDRESS } from "@/lib/constants";
 import { client } from "@/app/client";
 import { defineChain, getContract } from "thirdweb";
-import { HeartPulse, Zap, Target } from "lucide-react";
+import { HeartPulse, Zap, Target, X } from "lucide-react";
 
 const vinuchain = defineChain(207);
 
@@ -20,8 +20,20 @@ const contract = getContract({
     address: VINU_ECONOMY_CONTRACT_ADDRESS,
 });
 
-export function ShopPanel() {
-    const { addShakes, addStrikes, triggerRevive } = useGameStore();
+interface ShopPanelProps {
+    onClose?: () => void;
+}
+
+export function ShopPanel({ onClose }: ShopPanelProps) {
+    const {
+        addShakes,
+        addStrikes,
+        triggerRevive,
+        freeShakes,
+        freeStrikes,
+        consumeFreeShake,
+        consumeFreeStrike
+    } = useGameStore();
 
     const buyItem = (itemName: string, price: string) => {
         return prepareContractCall({
@@ -33,10 +45,17 @@ export function ShopPanel() {
     };
 
     return (
-        <Panel className="w-full max-w-md mx-auto">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                Shop <span className="text-xs font-normal opacity-50">(Support the Dev & Burn VC)</span>
-            </h2>
+        <Panel className="w-full max-w-md mx-auto relative">
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                    Shop <span className="text-xs font-normal opacity-50">(Support the Dev & Burn VC)</span>
+                </h2>
+                {onClose && (
+                    <button onClick={onClose} className="text-white/70 hover:text-white transition-colors">
+                        <X size={24} />
+                    </button>
+                )}
+            </div>
             <div className="space-y-4">
                 {/* Shake */}
                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10">
@@ -45,20 +64,34 @@ export function ShopPanel() {
                             <Zap size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold">Shake (x5)</h3>
+                            <h3 className="font-bold">Shake Reactor (x5)</h3>
                             <p className="text-xs opacity-70">Jolt the board to unstuck orbs.</p>
                         </div>
                     </div>
-                    <TransactionButton
-                        transaction={() => buyItem("shake", "200")}
-                        onTransactionConfirmed={() => {
-                            addShakes(5);
-                            alert("Purchased 5 Shakes!");
-                        }}
-                        className="!bg-blue-600 !text-white !text-sm !py-2 !px-4 !min-w-[100px]"
-                    >
-                        200 VC
-                    </TransactionButton>
+                    {freeShakes > 0 ? (
+                        <button
+                            onClick={() => {
+                                if (consumeFreeShake()) {
+                                    addShakes(5);
+                                    alert("Used Daily Free Shake! (Added 5 Shakes)");
+                                }
+                            }}
+                            className="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors min-w-[100px]"
+                        >
+                            Free (1/1)
+                        </button>
+                    ) : (
+                        <TransactionButton
+                            transaction={() => buyItem("shake", "200")}
+                            onTransactionConfirmed={() => {
+                                addShakes(5);
+                                alert("Purchased 5 Shakes!");
+                            }}
+                            className="!bg-blue-600 !text-white !text-sm !py-2 !px-4 !min-w-[100px]"
+                        >
+                            200 VC
+                        </TransactionButton>
+                    )}
                 </div>
 
                 {/* Precision Strike */}
@@ -68,20 +101,34 @@ export function ShopPanel() {
                             <Target size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold">Precision Strike</h3>
-                            <p className="text-xs opacity-70">Remove a single orb (Coming Soon).</p>
+                            <h3 className="font-bold">Precision Laser (x2)</h3>
+                            <p className="text-xs opacity-70">Click to delete orb.</p>
                         </div>
                     </div>
-                    <TransactionButton
-                        transaction={() => buyItem("strike", "1000")}
-                        onTransactionConfirmed={() => {
-                            addStrikes(1);
-                            alert("Purchased 1 Precision Strike!");
-                        }}
-                        className="!bg-red-600 !text-white !text-sm !py-2 !px-4 !min-w-[100px]"
-                    >
-                        1000 VC
-                    </TransactionButton>
+                    {freeStrikes > 0 ? (
+                        <button
+                            onClick={() => {
+                                if (consumeFreeStrike()) {
+                                    addStrikes(2);
+                                    alert("Used Daily Free Laser! (Added 2 Lasers)");
+                                }
+                            }}
+                            className="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors min-w-[100px]"
+                        >
+                            Free (1/1)
+                        </button>
+                    ) : (
+                        <TransactionButton
+                            transaction={() => buyItem("strike", "250")}
+                            onTransactionConfirmed={() => {
+                                addStrikes(2);
+                                alert("Purchased 2 Precision Lasers!");
+                            }}
+                            className="!bg-red-600 !text-white !text-sm !py-2 !px-4 !min-w-[100px]"
+                        >
+                            250 VC
+                        </TransactionButton>
+                    )}
                 </div>
 
                 {/* Revive */}
@@ -91,19 +138,19 @@ export function ShopPanel() {
                             <HeartPulse size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold">Halve Protocol</h3>
+                            <h3 className="font-bold">Revive Protocol</h3>
                             <p className="text-xs opacity-70">Remove top 50% of orbs. Instant.</p>
                         </div>
                     </div>
                     <TransactionButton
-                        transaction={() => buyItem("revive", "500")}
+                        transaction={() => buyItem("revive", "1000")}
                         onTransactionConfirmed={() => {
                             triggerRevive();
-                            alert("Halve Protocol Activated!");
+                            alert("Revive Protocol Activated!");
                         }}
                         className="!bg-green-600 !text-white !text-sm !py-2 !px-4 !min-w-[100px]"
                     >
-                        500 VC
+                        1000 VC
                     </TransactionButton>
                 </div>
             </div>

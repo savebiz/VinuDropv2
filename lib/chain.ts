@@ -2,7 +2,7 @@ import { defineChain } from "thirdweb";
 
 const vinuChainMainnet = defineChain({
     id: 207,
-    name: "VinuChain",
+    name: "VinuChain Mainnet",
     rpc: "https://vinuchain-rpc.com",
     nativeCurrency: {
         name: "VinuChain",

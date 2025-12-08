@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { ORB_LEVELS } from "@/lib/constants";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { DailyRewardButton } from "@/components/game/DailyRewardButton";
-import { Trophy, RefreshCw, ShoppingBag, BarChart2 } from "lucide-react";
+import { Trophy, RefreshCw, ShoppingBag, BarChart2, Zap, Target, HeartPulse, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import ProfileModal from "@/components/ui/ProfileModal";
@@ -19,7 +19,7 @@ import { useHighScore } from "@/hooks/useHighScore";
 import { ShopPanel } from "@/components/shop/ShopPanel";
 import FullLeaderboardModal from "@/components/leaderboard/FullLeaderboardModal";
 import { useState } from "react";
-import { X } from "lucide-react";
+
 
 // import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -35,6 +35,7 @@ export default function GameContainer() {
         isGameOver,
         gameId,
         resetGame,
+        startTime,
         username // Assuming username is in store now
     } = useGameStore();
     const { theme } = useTheme();
@@ -57,7 +58,9 @@ export default function GameContainer() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         score,
-                        wallet: account.address.toLowerCase()
+                        wallet: account.address.toLowerCase(),
+                        startTime,
+                        endTime: Date.now()
                     })
                 });
             }
@@ -108,21 +111,64 @@ export default function GameContainer() {
                     <ProfileModal />
                 </Panel>
 
-                <Panel className="flex flex-col gap-4">
-                    <Button onClick={() => setShowResetConfirm(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
-                        <RefreshCw size={18} /> Restart
-                    </Button>
-                    {/* Daily Reward Button */}
-                    <div className="w-full pb-2 border-b border-white/10 mb-2">
+                <Panel className="flex flex-col gap-8">
+                    {/* Group 1: Game Controls */}
+                    <div className={`flex flex-col gap-2 pb-6 border-b ${theme === 'cosmic' ? 'border-white/10' : 'border-black/20'}`}>
+                        <Button onClick={() => setShowResetConfirm(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
+                            <RefreshCw size={18} /> Restart
+                        </Button>
                         <DailyRewardButton />
                     </div>
 
-                    <Button onClick={() => setShowShop(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
-                        <ShoppingBag size={18} /> Shop
-                    </Button>
-                    <Button onClick={() => setShowLeaderboard(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
-                        <BarChart2 size={18} /> Leaderboard
-                    </Button>
+                    {/* Group 2: Shop & Inventory */}
+                    <div className={`flex flex-col gap-2 pb-6 border-b ${theme === 'cosmic' ? 'border-white/10' : 'border-black/20'}`}>
+                        <Button onClick={() => setShowShop(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
+                            <ShoppingBag size={18} /> Shop
+                        </Button>
+
+                        <div className="flex gap-2 w-full">
+                            {/* Shake Button */}
+                            <InventoryButton
+                                icon={<Zap size={18} />}
+                                count={useGameStore((state) => state.shakes)}
+                                label="Shake"
+                                color="blue"
+                                onClick={() => {
+                                    const { shakes, useShake, triggerShake } = useGameStore.getState();
+                                    if (shakes > 0) {
+                                        useShake();
+                                        triggerShake();
+                                    } else {
+                                        setShowShop(true);
+                                    }
+                                }}
+                            />
+
+                            {/* Laser Button */}
+                            <InventoryButton
+                                icon={<Target size={18} />}
+                                count={useGameStore((state) => state.strikes)}
+                                label="Laser"
+                                color="red"
+                                active={useGameStore((state) => state.laserMode)}
+                                onClick={() => {
+                                    const { strikes, toggleLaserMode, laserMode } = useGameStore.getState();
+                                    if (strikes > 0 || laserMode) {
+                                        toggleLaserMode();
+                                    } else {
+                                        setShowShop(true);
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Group 3: Leaderboard */}
+                    <div>
+                        <Button onClick={() => setShowLeaderboard(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
+                            <BarChart2 size={18} /> Leaderboard
+                        </Button>
+                    </div>
                 </Panel>
             </div>
 
@@ -148,6 +194,18 @@ export default function GameContainer() {
                                 <Button onClick={resetGame} variant="primary" className="w-full">
                                     Try Again
                                 </Button>
+                                {/* Revive Option */}
+                                <div className="mt-4 pt-4 border-t border-white/10">
+                                    <p className="text-xs text-white/50 mb-2">Or continue playing?</p>
+                                    <Button
+                                        onClick={() => setShowShop(true)}
+                                        variant="secondary"
+                                        className="w-full flex items-center justify-center gap-2 text-sm py-2"
+                                    >
+                                        <HeartPulse size={16} className="text-green-400" />
+                                        Buy Revive
+                                    </Button>
+                                </div>
                             </div>
                         </motion.div>
                     )}
@@ -180,12 +238,12 @@ export default function GameContainer() {
                         <li>Don't cross the top line!</li>
                     </ul>
                 </Panel>
-            </div>
+            </div >
 
             {/* Modals */}
-            <FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
+            < FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
 
-            <ConfirmDialog
+            < ConfirmDialog
                 isOpen={showResetConfirm}
                 onClose={() => setShowResetConfirm(false)}
                 onConfirm={handleConfirmReset}
@@ -201,14 +259,35 @@ export default function GameContainer() {
                         className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
                     >
                         <div className="relative w-full max-w-md">
-                            <button onClick={() => setShowShop(false)} className="absolute -top-10 right-0 text-white hover:text-cyan-400">
-                                <X size={32} />
-                            </button>
-                            <ShopPanel />
+                            <ShopPanel onClose={() => setShowShop(false)} />
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
+}
+
+function InventoryButton({ icon, count, label, color, onClick, active }: any) {
+    const colors: any = {
+        blue: 'bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30',
+        red: 'bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30',
+        green: 'bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30'
+    };
+
+    return (
+        <button
+            onClick={onClick}
+            className={`
+                relative flex items-center gap-2 px-3 py-2 rounded-lg border transition-all active:scale-95
+                ${active ? 'bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]' : colors[color]}
+            `}
+        >
+            {icon}
+            <span className="font-bold text-sm">{label}</span>
+            <span className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-white text-black text-xs font-bold rounded-full shadow-lg">
+                {count}
+            </span>
+        </button>
+    )
 }

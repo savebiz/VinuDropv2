@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { useState } from "react";
-import { ConnectButton } from "thirdweb/react";
+import { ConnectButton, darkTheme, lightTheme } from "thirdweb/react";
 import { client } from "./client";
 import { activeChain } from "@/lib/chain";
 import { ThemeProvider, useTheme } from "@/components/ui/ThemeProvider";
@@ -43,7 +43,12 @@ function AppContent() {
           <ConnectButton
             client={client}
             chain={activeChain}
-            theme={theme === "cosmic" ? "dark" : "light"}
+            theme={theme === "cosmic" ? darkTheme({
+              colors: {
+                modalBg: "#000000",
+                borderColor: "#333333",
+              }
+            }) : lightTheme()}
             connectButton={{
               label: "Connect Wallet",
               className: "!bg-cyan-600 !text-white !font-bold !rounded-xl"

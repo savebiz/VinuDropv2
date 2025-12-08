@@ -20,7 +20,11 @@ const PhysicsScene = React.memo(() => {
         setGameOver,
         nextOrbLevel,
         setNextOrbLevel,
-        reviveTrigger
+        reviveTrigger,
+        shakeTrigger,
+        laserMode,
+        useStrike,
+        toggleLaserMode
     } = useGameStore();
 
     const [canDrop, setCanDrop] = useState(true);
@@ -55,6 +59,25 @@ const PhysicsScene = React.memo(() => {
 
     }, [reviveTrigger, setGameOver]);
 
+    // Shake Logic (Reactor)
+    useEffect(() => {
+        if (shakeTrigger === 0 || !engineRef.current) return;
+
+        const world = engineRef.current.world;
+        const bodies = Matter.Composite.allBodies(world);
+        const orbs = bodies.filter(b => !b.isStatic && b.label !== 'sensor');
+
+        orbs.forEach(body => {
+            // Apply random force vector
+            const forceMagnitude = 0.05 * body.mass;
+            Matter.Body.applyForce(body, body.position, {
+                x: (Math.random() - 0.5) * forceMagnitude,
+                y: -Math.random() * forceMagnitude // Mostly upward pop
+            });
+        });
+
+    }, [shakeTrigger]); // Re-run when shakeTrigger updates
+
     useEffect(() => {
         if (!sceneRef.current) return;
 
@@ -84,14 +107,7 @@ const PhysicsScene = React.memo(() => {
             savedOrbs.forEach(orbData => {
                 const orb = Bodies.circle(orbData.x, orbData.y, orbData.radius, {
                     restitution: 0.3,
-                    render: {
-                        fillStyle: ORB_LEVELS[orbData.level].color,
-                        sprite: {
-                            texture: ORB_LEVELS[orbData.level].img,
-                            xScale: (orbData.radius * 2) / 512, // Assuming 512x512 textures, scale to fit radius
-                            yScale: (orbData.radius * 2) / 512
-                        }
-                    }
+                    render: { fillStyle: ORB_LEVELS[orbData.level].color }
                 });
                 // @ts-ignore
                 orb.level = orbData.level;
@@ -145,14 +161,7 @@ const PhysicsScene = React.memo(() => {
 
                         const newOrb = Bodies.circle(midX, midY, ORB_LEVELS[newLevel].radius, {
                             restitution: 0.3,
-                            render: {
-                                fillStyle: ORB_LEVELS[newLevel].color,
-                                sprite: {
-                                    texture: ORB_LEVELS[newLevel].img,
-                                    xScale: (ORB_LEVELS[newLevel].radius * 2) / 512,
-                                    yScale: (ORB_LEVELS[newLevel].radius * 2) / 512
-                                }
-                            },
+                            render: { fillStyle: ORB_LEVELS[newLevel].color },
                         });
                         // @ts-ignore
                         newOrb.level = newLevel;
@@ -238,29 +247,47 @@ const PhysicsScene = React.memo(() => {
             Engine.clear(engine);
             if (sensorTimer) clearTimeout(sensorTimer);
         };
-    }, [addScore, setGameOver]); // REMOVED 'theme' dependency
-
+    }, [addScore, setGameOver]);
 
     // Handle Mouse/Touch Interaction
     const handlePointerDown = (e: React.PointerEvent) => {
-        if (!canDrop || !engineRef.current) return;
-
+        if (!engineRef.current) return;
         const rect = sceneRef.current?.getBoundingClientRect();
         if (!rect) return;
-
         const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // --- LASER MODE ---
+        if (laserMode) {
+            // Find bodies at point
+            const bodies = Matter.Composite.allBodies(engineRef.current.world);
+            const clickedBodies = Matter.Query.point(bodies, { x, y });
+
+            // Filter only dynamic orbs (not walls/sensors)
+            const target = clickedBodies.find(b => !b.isStatic && b.label !== 'sensor');
+
+            if (target) {
+                // Try to consume ammo
+                if (useStrike()) {
+                    // Vaporize!
+                    Matter.World.remove(engineRef.current.world, target);
+                    toggleLaserMode();
+                } else {
+                    alert("Out of Precision Lasers!");
+                    toggleLaserMode();
+                }
+            }
+            return; // Don't drop an orb if we clicked to shoot
+        }
+
+        // --- NORMAL DROP MODE ---
+        if (!canDrop) return;
+
         const clampedX = Math.max(ORB_LEVELS[nextOrbLevel].radius, Math.min(GAME_WIDTH - ORB_LEVELS[nextOrbLevel].radius, x));
 
         const orb = Matter.Bodies.circle(clampedX, 50, ORB_LEVELS[nextOrbLevel].radius, {
             restitution: 0.3,
-            render: {
-                fillStyle: ORB_LEVELS[nextOrbLevel].color,
-                sprite: {
-                    texture: ORB_LEVELS[nextOrbLevel].img,
-                    xScale: (ORB_LEVELS[nextOrbLevel].radius * 2) / 512,
-                    yScale: (ORB_LEVELS[nextOrbLevel].radius * 2) / 512
-                }
-            }
+            render: { fillStyle: ORB_LEVELS[nextOrbLevel].color }
         });
         // @ts-ignore
         orb.level = nextOrbLevel;
@@ -282,7 +309,7 @@ const PhysicsScene = React.memo(() => {
         <div
             ref={sceneRef}
             // Use CSS variables for background to ensure instant theme switching without re-render
-            className="relative overflow-hidden rounded-xl cursor-pointer bg-background transition-colors duration-500"
+            className={`relative overflow-hidden rounded-xl bg-background transition-colors duration-500 ${laserMode ? 'cursor-crosshair' : 'cursor-pointer'}`}
             style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}
             onPointerDown={handlePointerDown}
         >

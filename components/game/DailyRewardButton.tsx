@@ -6,6 +6,7 @@ import { useTimeUntilUtcMidnight } from "@/hooks/useTimeUntilUtcMidnight";
 import { supabase } from "@/lib/supabaseClient";
 import { Gift, Loader2 } from "lucide-react";
 import { useActiveAccount } from "thirdweb/react";
+import { useGameStore } from "@/store/gameStore";
 
 interface DailyRewardButtonProps {
     onRewardClaimed?: () => void;
@@ -17,10 +18,14 @@ export function DailyRewardButton({ onRewardClaimed }: DailyRewardButtonProps) {
     const [loading, setLoading] = useState(false);
     const [jitterWait, setJitterWait] = useState(false);
 
-    // We can't robustly know if they claimed without checking DB. 
-    // For now, we rely on the RPC to tell us "Already Claimed" if they try.
-    // Ideally we would fetch this on mount.
-    const [lastClaimedDate, setLastClaimedDate] = useState<string | null>(null);
+    // Use persistent state instead of local state
+    const {
+        checkDailyFreebieReset,
+        addShakes,
+        addStrikes,
+        lastDailyRewardClaimDate,
+        setLastDailyRewardClaimDate
+    } = useGameStore();
 
     const handleClaim = async () => {
         if (!account) return;
@@ -48,13 +53,26 @@ export function DailyRewardButton({ onRewardClaimed }: DailyRewardButtonProps) {
                 const newStreak = data.new_streak;
                 alert(`Daily Reward Claimed! Streak: ${newStreak} 🔥`);
 
-                // Mark as claimed locally for this session
-                setLastClaimedDate(new Date().toISOString().split('T')[0]);
+                // Grant Rewards (1 Shake, 1 Laser)
+                addShakes(1);
+                addStrikes(1);
+
+                // Mark as claimed persistantly for this wallet
+                setLastDailyRewardClaimDate(account.address, new Date().toISOString().split('T')[0]);
 
                 if (onRewardClaimed) onRewardClaimed();
             } else {
+                // Check if error is "Already claimed"
                 // @ts-ignore
-                alert(`Claim Status: ${data.error || 'Unknown'}`);
+                const errorMessage = data.error || 'Unknown';
+
+                if (errorMessage.includes("Already claimed") || errorMessage.includes("already claimed")) {
+                    alert("Status: You have already claimed today's reward.");
+                    // Update local state so button disables instantly and stays disabled
+                    setLastDailyRewardClaimDate(account.address, new Date().toISOString().split('T')[0]);
+                } else {
+                    alert(`Claim Status: ${errorMessage}`);
+                }
             }
 
         } catch (err: any) {
@@ -66,8 +84,28 @@ export function DailyRewardButton({ onRewardClaimed }: DailyRewardButtonProps) {
     };
 
     const todayStr = new Date().toISOString().split('T')[0];
-    const hasClaimedLocally = lastClaimedDate === todayStr;
+
+    // Check if THIS account has claimed
+    const hasClaimedLocally =
+        account &&
+        lastDailyRewardClaimDate &&
+        lastDailyRewardClaimDate[account.address] === todayStr;
+
     const isReady = account && !hasClaimedLocally;
+
+    // Check for timer reset
+    // This is safe now because checkDailyFreebieReset checks the date internally.
+    // So even if this fires on mount with "00:00:00", it won't reset unless the date actually changed.
+    useEffect(() => {
+        if (formattedTime === "00:00:00" || formattedTime === "0h 0m 0s") { // Check formats depending on hook output
+            checkDailyFreebieReset();
+        }
+    }, [formattedTime, checkDailyFreebieReset]);
+
+    // Force check on mount as well to handle "refresh" case
+    useEffect(() => {
+        checkDailyFreebieReset();
+    }, [checkDailyFreebieReset]);
 
     return (
         <div className="flex flex-col items-center">

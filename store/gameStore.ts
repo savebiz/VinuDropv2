@@ -15,11 +15,20 @@ interface GameState {
     isGameOver: boolean;
     nextOrbLevel: number;
     gameId: string;
+    startTime: number; // For anti-cheat legacy validation
 
     // Inventory
     shakes: number;
     strikes: number;
     reviveTrigger: number;
+
+    // Daily Freebies
+    freeShakes: number;
+    freeStrikes: number;
+    lastFreebieResetDate: string | null;
+
+    // Tracks claim date per wallet address: { '0x123...': '2023-10-27' }
+    lastDailyRewardClaimDate: Record<string, string>;
 
     // Strict Persistence
     savedOrbs: SavedOrb[];
@@ -40,6 +49,23 @@ interface GameState {
     addStrikes: (amount: number) => void;
     useStrike: () => boolean;
     triggerRevive: () => void;
+
+    // Freebie Actions
+    checkDailyFreebieReset: () => void;
+    consumeFreeShake: () => boolean;
+    consumeFreeStrike: () => boolean;
+
+    // Updated to accept address
+    setLastDailyRewardClaimDate: (address: string, date: string) => void;
+
+    // Shake
+    shakeTrigger: number;
+    triggerShake: () => void;
+
+    // Laser
+    laserMode: boolean;
+    toggleLaserMode: () => void;
+    cursorMode?: 'default' | 'crosshair';
 }
 
 export const useGameStore = create<GameState>()(
@@ -56,24 +82,36 @@ export const useGameStore = create<GameState>()(
             shakes: 0,
             strikes: 0,
             reviveTrigger: 0,
+            shakeTrigger: 0,
             savedOrbs: [],
+            startTime: Date.now(),
+            laserMode: false,
+            cursorMode: 'default',
 
-            setSavedOrbs: (orbs) => set({ savedOrbs: orbs }),
+            // Freebies Defaults
+            freeShakes: 1,
+            freeStrikes: 1,
+            lastFreebieResetDate: null,
+            lastDailyRewardClaimDate: {}, // Initialize as empty object
+
+            setSavedOrbs: (orbs: SavedOrb[]) => set({ savedOrbs: orbs }),
 
             // ... actions ...
             setScore: (score) => set((state) => ({
                 score,
-                highScore: Math.max(state.highScore, score)
+                highScore: Math.max(Number(state.highScore) || 0, score)
             })),
             addScore: (points) => set((state) => {
                 const newScore = state.score + points;
                 return {
                     score: newScore,
-                    highScore: Math.max(state.highScore, newScore)
+                    highScore: Math.max(Number(state.highScore) || 0, newScore)
                 };
             }),
-            setHighScore: (score) => set({ highScore: score }),
-            setUsername: (name) => set({ username: name }),
+            setHighScore: (score: number) => set((state) => ({
+                highScore: Math.max(Number(state.highScore) || 0, score)
+            })),
+            setUsername: (name: string) => set({ username: name }),
             setGameOver: (isOver) => set({ isGameOver: isOver }),
             setNextOrbLevel: (level) => set({ nextOrbLevel: level }),
             resetGame: () => set({
@@ -82,6 +120,7 @@ export const useGameStore = create<GameState>()(
                 nextOrbLevel: Math.floor(Math.random() * 5),
                 gameId: crypto.randomUUID(),
                 savedOrbs: [], // Clear persistence on reset
+                startTime: Date.now(),
             }),
 
             addShakes: (amount) => set((state) => ({ shakes: state.shakes + amount })),
@@ -103,6 +142,47 @@ export const useGameStore = create<GameState>()(
                 return false;
             },
             triggerRevive: () => set({ reviveTrigger: Date.now() }),
+
+            // Freebie Logic
+            checkDailyFreebieReset: () => {
+                const today = new Date().toISOString().split('T')[0];
+                const { lastFreebieResetDate } = get();
+
+                if (lastFreebieResetDate !== today) {
+                    set({
+                        freeShakes: 1,
+                        freeStrikes: 1,
+                        lastFreebieResetDate: today
+                    });
+                }
+            },
+            consumeFreeShake: () => {
+                const { freeShakes } = get();
+                if (freeShakes > 0) {
+                    set({ freeShakes: freeShakes - 1 });
+                    return true;
+                }
+                return false;
+            },
+            consumeFreeStrike: () => {
+                const { freeStrikes } = get();
+                if (freeStrikes > 0) {
+                    set({ freeStrikes: freeStrikes - 1 });
+                    return true;
+                }
+                return false;
+            },
+
+            setLastDailyRewardClaimDate: (address: string, date: string) => set((state) => ({
+                lastDailyRewardClaimDate: {
+                    ...state.lastDailyRewardClaimDate,
+                    [address]: date
+                }
+            })),
+
+            triggerShake: () => set({ shakeTrigger: Date.now() }),
+
+            toggleLaserMode: () => set((state) => ({ laserMode: !state.laserMode, cursorMode: !state.laserMode ? 'crosshair' : 'default' })),
         }),
         {
             name: 'vinu-drop-storage', // unique name
@@ -113,7 +193,11 @@ export const useGameStore = create<GameState>()(
                 username: state.username,
                 shakes: state.shakes,
                 strikes: state.strikes,
-                savedOrbs: state.savedOrbs, // <--- PERSIST ORBS
+                freeShakes: state.freeShakes,
+                freeStrikes: state.freeStrikes,
+                lastFreebieResetDate: state.lastFreebieResetDate,
+                lastDailyRewardClaimDate: state.lastDailyRewardClaimDate,
+                savedOrbs: state.savedOrbs,
             }),
         }
     )
