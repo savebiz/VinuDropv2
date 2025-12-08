@@ -196,8 +196,8 @@ const PhysicsScene = React.memo(() => {
 
                         // Shake: Level 0->1 (Tiny), Level 10 (Massive)
                         // Formula: (level + 1) * 1.5
-                        const shakeIntensity = (level + 1) * 2;
-                        triggerShake(shakeIntensity);
+                        // const shakeIntensity = (level + 1) * 2;
+                        // triggerShake(shakeIntensity); // DISABLED: User requested to disable spring motion on merge
 
                         // VFX: Explosion
                         spawnEffect({
