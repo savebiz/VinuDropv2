@@ -54,7 +54,7 @@ export const MobileHUD = ({ onOpenShop, onOpenLeaderboard }: MobileHUDProps) => 
                 <div className="pointer-events-auto absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center">
                     <div className="text-[10px] font-bold text-white/80 uppercase tracking-widest mb-1 drop-shadow-md">Next</div>
                     <div className="w-16 h-16 bg-black/30 backdrop-blur-sm rounded-full border border-white/10 flex items-center justify-center shadow-2xl ring-2 ring-white/5">
-                        {_hasHydrated && (
+                        {_hasHydrated && ORB_LEVELS[nextOrbLevel] && (
                             <div
                                 style={{
                                     width: ORB_LEVELS[nextOrbLevel].radius * 2 * 0.8, // Slightly scaled down for HUD
