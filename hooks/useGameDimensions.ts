@@ -1,6 +1,6 @@
 import { useState, useEffect, RefObject } from 'react';
 
-export const useGameDimensions = (containerRef: RefObject<HTMLElement>) => {
+export const useGameDimensions = (containerRef: RefObject<HTMLElement | null>) => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0, scale: 1 });
 
     useEffect(() => {
