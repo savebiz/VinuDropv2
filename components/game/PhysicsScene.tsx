@@ -379,6 +379,8 @@ const PhysicsScene = React.memo(() => {
             const containerWidth = sceneRef.current.clientWidth;
             const containerHeight = sceneRef.current.clientHeight;
 
+            if (!containerWidth || !containerHeight) return;
+
             const render = renderRef.current;
 
             // Update canvas size
