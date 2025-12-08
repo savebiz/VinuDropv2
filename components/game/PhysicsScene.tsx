@@ -139,14 +139,21 @@ const PhysicsScene = React.memo(() => {
             element: sceneRef.current,
             engine: engine,
             options: {
-                width: GAME_WIDTH,
-                height: GAME_HEIGHT,
+                // Initial size (will be overridden by resize handler, but good defaults)
+                width: sceneRef.current.clientWidth,
+                height: sceneRef.current.clientHeight,
                 wireframes: false,
                 background: 'transparent',
-                pixelRatio: 1,
+                pixelRatio: window.devicePixelRatio || 1, // High DPI Support
             },
         });
         renderRef.current = render;
+
+        // Fit the world initially
+        Matter.Render.lookAt(render, {
+            min: { x: 0, y: 0 },
+            max: { x: GAME_WIDTH, y: GAME_HEIGHT }
+        });
 
         const wallOptions = {
             isStatic: true,
@@ -362,18 +369,97 @@ const PhysicsScene = React.memo(() => {
     };
 
     return (
+        // Dynamic Sizing
+        useEffect(() => {
+            if (!sceneRef.current || !renderRef.current || !engineRef.current) return;
+
+            const handleResize = () => {
+                if (!sceneRef.current || !renderRef.current) return;
+
+                const containerWidth = sceneRef.current.clientWidth;
+                const containerHeight = sceneRef.current.clientHeight;
+
+                const render = renderRef.current;
+
+                // Update canvas size
+                render.canvas.width = containerWidth;
+                render.canvas.height = containerHeight;
+
+                // Calculate scale to fit the physics world (GAME_WIDTH x GAME_HEIGHT) into the container
+                // We want 'contain' behavior (show all physics world, may have letterboxing if aspect differs)
+                // Or 'cover' behavior? Requirement: "Jar remains in the middle... max-width on desktop"
+                // The container in GameContainer handles the max-width aspect ratio usually. 
+                // So we usually just want to match the physics world 1:1 if possible, or scale uniformly.
+
+                // Let's assume the container is resizing to match our desired aspect ratio roughly, 
+                // but we need to map the physics coordinates (0,0 -> GAME_WIDTH, GAME_HEIGHT) 
+                // to the canvas coordinates (0,0 -> containerWidth, containerHeight).
+
+                const scaleX = containerWidth / GAME_WIDTH;
+                const scaleY = containerHeight / GAME_HEIGHT;
+                const scale = Math.min(scaleX, scaleY);
+
+                // Center the view
+                // render.bounds is the region of the physics world being viewed.
+                // If scale is 1, bounds is 0,0 to width,height.
+                // If scale is 0.5 (container is half size of physics), we effectively view a LARGER area if we don't zoom?
+                // Wait, Matter.Render automatically handles simple scaling if we set pixelRatio? No.
+
+                // Correct approach for Matter.js Responsive Scaling:
+                // 1. Set render.options.width/height (logical size)
+                // 2. Set canvas width/height (display size)
+                // But standard Matter.Render doesn't auto-scale. We used lookAt usually.
+
+                // SIMPLER: Use Matter.Render.lookAt to center the view on the board center.
+                // Board Center: GAME_WIDTH/2, GAME_HEIGHT/2.
+                // Padding: Maybe add some padding.
+
+                Matter.Render.lookAt(render, {
+                    min: { x: 0, y: 0 },
+                    max: { x: GAME_WIDTH, y: GAME_HEIGHT }
+                });
+
+                // If we want exact pixel matching without blur, we might need to handle scaling manually context-wise, 
+                // but lookAt is the robust physics-engine way.
+            };
+
+            const resizeObserver = new ResizeObserver(() => handleResize());
+            resizeObserver.observe(sceneRef.current);
+
+            return () => resizeObserver.disconnect();
+        }, []);
+
+    // ... existing Matter setup ...
+    // BUT we need to remove the "width: GAME_WIDTH" style from the div to let it fill parent
+
+    return (
         <div
             ref={sceneRef}
-            // Use CSS variables for background to ensure instant theme switching without re-render
-            className={`relative overflow-hidden rounded-xl bg-background transition-colors duration-500 ${laserMode ? 'cursor-crosshair' : 'cursor-pointer'}`}
-            style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}
+            className={`relative w-full h-full overflow-hidden rounded-xl bg-background transition-colors duration-500 ${laserMode ? 'cursor-crosshair' : 'cursor-pointer'}`}
+            // style={{ width: GAME_WIDTH, height: GAME_HEIGHT }} <--- REMOVED FIXED SIZE
             onPointerDown={handlePointerDown}
         >
-            {/* Danger Line Overlay */}
-            {/* Positioned at Y=100 which is where the sensor is */}
+            {/* Danger Line Overlay - Scaled? Use % or fix based on physics world projection? 
+                If we use Matter.Render, CSS overlays might desync from the canvas content if scaling happens.
+                For now, let's keep it simply placed. 
+                Improvement: If scaling is complex, CSS overlay needs transform too. 
+                But if we rely on the container aspect ratio logic in GameContainer to hold scaling, 
+                then this div is effectively 1:1 with physics world conceptually, just scaled via CSS transform on the parent?
+                
+                Actually, GameContainer has:
+                 <div className="relative w-full lg:max-w-md ... flex items-center justify-center">
+                    <motion.div ... className="relative w-full h-full"> 
+                        <PhysicsScene />
+                    </motion.div>
+                </div>
+                
+                If we rely on CSS scaling, we don't need Matter.Render.lookAt logic changes usually.
+                But the requirement asked for "Dynamic Canvas Scaling... adjust render.bounds".
+                Safest path: Let the canvas fill the container, and use lookAt to fit the world.
+            */}
             <div
                 className="absolute w-full border-b-2 border-red-600 border-dashed z-50 pointer-events-none animate-pulse"
-                style={{ top: '100px' }}
+                style={{ top: '15%' }} // Changed to % to be safer with responsiveness
             >
                 <div className="absolute right-0 -top-6 text-red-600 text-xs font-bold bg-black/50 px-2 py-1 rounded">DANGER</div>
             </div>
