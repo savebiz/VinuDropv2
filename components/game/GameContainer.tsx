@@ -27,8 +27,36 @@ import { useScreenShake } from "@/hooks/useScreenShake";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { supabase } from "@/lib/supabaseClient";
 
+import { useGameAudio } from "@/hooks/useGameAudio"; // Import hook
+
 export default function GameContainer() {
     useHighScore(); // Fetch/Sync data
+
+    const { startBGM } = useGameAudio(); // Get startBGM from singleton hook
+
+    // --- GLOBAL AUDIO RESUME ---
+    // User interaction is required to start audio context.
+    // This listeners waits for ANY click/touch/key to start the BGM if it's not playing.
+    React.useEffect(() => {
+        const handleInteraction = () => {
+            startBGM();
+            // Remove listeners once audio is triggered
+            window.removeEventListener('click', handleInteraction);
+            window.removeEventListener('keydown', handleInteraction);
+            window.removeEventListener('touchstart', handleInteraction);
+        };
+
+        window.addEventListener('click', handleInteraction);
+        window.addEventListener('keydown', handleInteraction);
+        window.addEventListener('touchstart', handleInteraction);
+
+        return () => {
+            window.removeEventListener('click', handleInteraction);
+            window.removeEventListener('keydown', handleInteraction);
+            window.removeEventListener('touchstart', handleInteraction);
+        }
+    }, [startBGM]);
+    // ---------------------------
 
     const {
         score,
