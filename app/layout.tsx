@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThirdwebProvider } from "thirdweb/react";
+import { ThirdwebProvider, AutoConnect } from "thirdweb/react"; // Import AutoConnect
 import { activeChain } from "@/lib/chain";
+import { client } from "@/app/client"; // Import client
 import DevBanner from "@/components/ui/DevBanner";
 import "./globals.css";
 
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThirdwebProvider>
+          <AutoConnect client={client} />
           <DevBanner />
           {children}
         </ThirdwebProvider>
