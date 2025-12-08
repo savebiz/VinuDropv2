@@ -228,17 +228,19 @@ export default function GameContainer() {
                 <Panel className="flex flex-col items-center gap-4">
                     <h2 className="text-sm uppercase tracking-wider opacity-70">Next</h2>
                     <div className="w-24 h-24 flex items-center justify-center bg-black/5 rounded-full relative">
-                        <motion.div
-                            animate={{ scale: [1, 1.05, 1] }}
-                            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                            style={{
-                                width: ORB_LEVELS[nextOrbLevel].radius * 2,
-                                height: ORB_LEVELS[nextOrbLevel].radius * 2,
-                                backgroundColor: ORB_LEVELS[nextOrbLevel].color,
-                                borderRadius: '50%'
-                            }}
-                            className="shadow-lg"
-                        />
+                        {useGameStore(state => state._hasHydrated) && (
+                            <motion.div
+                                animate={{ scale: [1, 1.05, 1] }}
+                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                style={{
+                                    width: ORB_LEVELS[nextOrbLevel].radius * 2,
+                                    height: ORB_LEVELS[nextOrbLevel].radius * 2,
+                                    backgroundColor: ORB_LEVELS[nextOrbLevel].color,
+                                    borderRadius: '50%'
+                                }}
+                                className="shadow-lg"
+                            />
+                        )}
                     </div>
                     <p className="font-bold">{ORB_LEVELS[nextOrbLevel].name}</p>
                 </Panel>

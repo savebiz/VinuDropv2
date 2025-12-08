@@ -71,6 +71,10 @@ interface GameState {
     laserMode: boolean;
     toggleLaserMode: () => void;
     cursorMode?: 'default' | 'crosshair';
+
+    // Hydration state
+    _hasHydrated: boolean;
+    setHasHydrated: (state: boolean) => void;
 }
 
 export const useGameStore = create<GameState>()(
@@ -191,9 +195,15 @@ export const useGameStore = create<GameState>()(
             triggerShake: (intensity = 1) => set({ shakeTrigger: Date.now(), shakeIntensity: intensity }),
 
             toggleLaserMode: () => set((state) => ({ laserMode: !state.laserMode, cursorMode: !state.laserMode ? 'crosshair' : 'default' })),
+
+            _hasHydrated: false,
+            setHasHydrated: (state) => set({ _hasHydrated: state }),
         }),
         {
             name: 'vinu-drop-storage', // unique name
+            onRehydrateStorage: () => (state) => {
+                state?.setHasHydrated(true);
+            },
             partialize: (state) => ({
                 // Only persist these fields
                 score: state.score,
