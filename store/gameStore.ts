@@ -207,6 +207,7 @@ export const useGameStore = create<GameState>()(
                 lastDailyRewardClaimDate: state.lastDailyRewardClaimDate,
                 savedOrbs: state.savedOrbs,
                 isMuted: state.isMuted,
+                nextOrbLevel: state.nextOrbLevel,
             }),
         }
     )
