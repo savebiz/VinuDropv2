@@ -187,8 +187,6 @@ const PhysicsScene = React.memo(() => {
                         newOrb.level = newLevel;
 
                         World.add(world, newOrb);
-                        World.add(world, newOrb);
-                        // addScore(ORB_LEVELS[level].score); <-- REMOVE direct call, use ref
 
                         // --- JUICE START ---
                         const { playMergeSound, triggerShake, spawnEffect, addScore } = actionsRef.current;

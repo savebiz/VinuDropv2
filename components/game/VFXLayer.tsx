@@ -56,9 +56,9 @@ const VFXLayer = () => {
 
 // Sub-component for Explosion
 const Explosion = ({ effect, onComplete }: { effect: any, onComplete: () => void }) => {
-    // Generate 12 particles
-    const particles = Array.from({ length: 12 }).map((_, i) => {
-        const angle = (i / 12) * Math.PI * 2;
+    // Generate 4 particles (User requested reduction)
+    const particles = Array.from({ length: 4 }).map((_, i) => {
+        const angle = (i / 4) * Math.PI * 2;
         const velocity = Math.random() * 50 + 20; // Distance to travel
         const tx = Math.cos(angle) * velocity;
         const ty = Math.sin(angle) * velocity;
