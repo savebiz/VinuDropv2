@@ -195,7 +195,7 @@ const PhysicsScene = React.memo(() => {
                         playMergeSound(level);
 
                         // Shake: Very Light (Fixed low intensity, logic handled in hook)
-                        triggerShake(1); // Intensity ignored by new hook but keeps API valid
+                        // triggerShake(1); // DISABLED per user request to remove shake completely
 
                         // VFX: Explosion
                         spawnEffect({
