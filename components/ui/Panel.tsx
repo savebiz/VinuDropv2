@@ -14,9 +14,9 @@ export function Panel({ children, className, ...props }: PanelProps) {
         <div
             className={cn(
                 "rounded-2xl p-6 transition-all duration-300",
-                theme === "cosmic"
-                    ? "bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl"
-                    : "bg-white/80 backdrop-blur-md border border-slate-200 shadow-xl",
+                theme === "ceramic"
+                    ? "bg-white/80 backdrop-blur-md border border-slate-200 shadow-xl"
+                    : "bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl",
                 className
             )}
             {...props}
