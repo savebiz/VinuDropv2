@@ -1,8 +1,7 @@
-
 "use client";
 
-import React from "react";
-import { useActiveAccount } from "thirdweb/react"; // Add this import
+import React, { useState } from "react";
+import { useActiveAccount } from "thirdweb/react";
 import { useGameStore } from "@/store/gameStore";
 import PhysicsScene from "./PhysicsScene";
 import { Panel } from "@/components/ui/Panel";
@@ -10,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { ORB_LEVELS } from "@/lib/constants";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { DailyRewardButton } from "@/components/game/DailyRewardButton";
-import { Trophy, RefreshCw, ShoppingBag, BarChart2, Zap, Target, HeartPulse, X } from "lucide-react";
+import { RefreshCw, ShoppingBag, BarChart2, Zap, Target, HeartPulse } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import ProfileModal from "@/components/ui/ProfileModal";
@@ -20,20 +19,14 @@ import dynamic from "next/dynamic";
 
 const ShopPanel = dynamic(() => import("@/components/shop/ShopPanel").then(mod => mod.ShopPanel), { ssr: false });
 const FullLeaderboardModal = dynamic(() => import("@/components/leaderboard/FullLeaderboardModal"), { ssr: false });
-import { useState } from "react";
 import VFXLayer from "@/components/game/VFXLayer";
 import { useScreenShake } from "@/hooks/useScreenShake";
 import { MobileTopHUD } from "./MobileTopHUD";
 import { MobileBottomControls } from "./MobileBottomControls";
 import { useGameDimensions } from "@/hooks/useGameDimensions";
 import { ErrorBoundary } from '@/components/utility/ErrorBoundary';
-
-
-// import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { supabase } from "@/lib/supabaseClient";
-
-import { useGameAudio } from "@/hooks/useGameAudio"; // Import hook
+import { useGameAudio } from "@/hooks/useGameAudio";
 
 export default function GameContainer() {
     useHighScore(); // Fetch/Sync data
@@ -41,12 +34,9 @@ export default function GameContainer() {
     const { startBGM } = useGameAudio(); // Get startBGM from singleton hook
 
     // --- GLOBAL AUDIO RESUME ---
-    // User interaction is required to start audio context.
-    // This listeners waits for ANY click/touch/key to start the BGM if it's not playing.
     React.useEffect(() => {
         const handleInteraction = () => {
             startBGM();
-            // Remove listeners once audio is triggered
             window.removeEventListener('click', handleInteraction);
             window.removeEventListener('keydown', handleInteraction);
             window.removeEventListener('touchstart', handleInteraction);
@@ -62,7 +52,6 @@ export default function GameContainer() {
             window.removeEventListener('touchstart', handleInteraction);
         }
     }, [startBGM]);
-    // ---------------------------
 
     const {
         score,
@@ -72,9 +61,7 @@ export default function GameContainer() {
         gameId,
         resetGame,
         startTime,
-        username // Assuming username is in store now
     } = useGameStore();
-    const { theme } = useTheme();
 
     const [showShop, setShowShop] = useState(false);
     const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -83,14 +70,11 @@ export default function GameContainer() {
     const { x, y } = useScreenShake();
 
     // Play Again Safety
-
-    // Play Again Safety
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [resetting, setResetting] = useState(false);
 
-    const account = useActiveAccount(); // Use Thirdweb account
+    const account = useActiveAccount();
 
-    // Unified Score Submission Logic
     const submitCurrentScore = async () => {
         try {
             if (account && account.address && score > 0) {
@@ -120,7 +104,7 @@ export default function GameContainer() {
     const handleConfirmReset = async () => {
         setResetting(true);
         try {
-            await submitCurrentScore(); // Re-use logic
+            await submitCurrentScore();
         } finally {
             resetGame();
             setResetting(false);
@@ -142,17 +126,16 @@ export default function GameContainer() {
     }, [score, isGameOver]);
 
     const containerRef = React.useRef<HTMLDivElement>(null);
-    const { width } = useGameDimensions(containerRef);
-
-    // Layout is now handled via CSS breakpoints to prevent component unmounting/remounting
-    // which caused React hook mismatches on resize.
+    // Measuring the container ref for the physics calculation.
+    // Important: we apply ref to the inner game area now.
+    useGameDimensions(containerRef);
 
     // MAIN LAYOUT RETURN
     return (
-        <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-transparent touch-none select-none flex flex-col items-center justify-center">
+        <div className="relative w-full h-full overflow-hidden bg-transparent touch-none select-none flex flex-col items-center justify-center">
 
-            {/* --- UNIFIED LAYOUT (CSS Responsive) --- */}
-            <div className="flex items-center justify-center gap-8 w-full h-full p-4 relative">
+            {/* --- SINGLE UNIFIED LAYOUT (CSS Grid/Flex) --- */}
+            <div className="flex flex-col md:flex-row items-center justify-center md:gap-8 w-full h-full md:p-4 relative">
 
                 {/* LEFT PANEL (Desktop Only) */}
                 <div className="hidden md:flex w-64 flex-col justify-center h-full max-h-[800px] z-20 pointer-events-none">
@@ -171,16 +154,38 @@ export default function GameContainer() {
                     </div>
                 </div>
 
-                {/* CENTRAL GAME JAR (Responsive) */}
-                {/* On Mobile: Absolute Full Screen, z-0 */}
-                {/* On Desktop: Relative, aspect ratio, borders, z-10 */}
-                <div className="absolute inset-0 z-0 md:relative md:inset-auto md:z-10 md:h-full md:max-h-[75vh] md:aspect-[3/4] md:border-2 md:border-dashed md:border-white/5 md:bg-black/20 md:rounded-xl md:overflow-hidden md:shrink-0 transition-all duration-300">
-                    <ErrorBoundary>
-                        <motion.div style={{ x, y }} className="relative w-full h-full">
-                            <VFXLayer />
-                            <PhysicsScene key={gameId} />
-                        </motion.div>
-                    </ErrorBoundary>
+                {/* CENTRAL GAME AREA (Unified) */}
+                <div
+                    className="
+                        relative flex flex-col items-center
+                        w-full h-full 
+                        md:w-auto md:h-full md:max-h-[75vh] md:aspect-[3/4] 
+                        md:bg-black/20 md:border-2 md:border-dashed md:border-white/5 md:rounded-xl md:overflow-hidden md:shrink-0
+                        transition-all duration-300
+                    "
+                >
+                    {/* Top HUD (Mobile Only Overlay) */}
+                    <div className="md:hidden absolute inset-0 z-50 pointer-events-none">
+                        <MobileTopHUD onOpenLeaderboard={() => setShowLeaderboard(true)} />
+                    </div>
+
+                    {/* PHYSICS CANVAS WRAPPER (This is what determines Game Width/Height) */}
+                    <div ref={containerRef} className="relative flex-1 w-full min-h-0 overflow-hidden md:flex-none md:h-full md:w-full">
+                        <ErrorBoundary>
+                            <motion.div style={{ x, y }} className="relative w-full h-full">
+                                <VFXLayer />
+                                <PhysicsScene key={gameId} />
+                            </motion.div>
+                        </ErrorBoundary>
+                    </div>
+
+                    {/* Bottom Controls (Mobile Only Bar) */}
+                    <div className="md:hidden shrink-0 z-50 w-full">
+                        <ErrorBoundary fallback={null}>
+                            <MobileBottomControls onOpenShop={() => setShowShop(true)} />
+                        </ErrorBoundary>
+                    </div>
+
                 </div>
 
                 {/* RIGHT PANEL (Desktop Only) */}
@@ -209,7 +214,6 @@ export default function GameContainer() {
 
                             <hr className="border-white/10" />
 
-                            {/* Inventory Buttons (Moved Up) */}
                             <div className="flex gap-2 w-full">
                                 <InventoryButton
                                     icon={<Zap size={18} />}
@@ -255,29 +259,6 @@ export default function GameContainer() {
                             </div>
                         </Panel>
                     </div>
-                </div>
-
-                {/* MOBILE LAYOUT (Mobile Only) */}
-                <div className="md:hidden flex flex-col w-full h-full relative overflow-hidden">
-
-                    {/* Game Area (Flex 1) */}
-                    <div className="relative flex-1 w-full min-h-0 bg-black/20 overflow-hidden">
-                        <ErrorBoundary>
-                            <motion.div style={{ x, y }} className="relative w-full h-full">
-                                <VFXLayer />
-                                <PhysicsScene key={gameId} />
-
-                                {/* Top HUD Overlay */}
-                                <MobileTopHUD onOpenLeaderboard={() => setShowLeaderboard(true)} />
-                            </motion.div>
-                        </ErrorBoundary>
-                    </div>
-
-                    {/* Bottom Controls Bar (Fixed Height) */}
-                    <ErrorBoundary fallback={null}>
-                        <MobileBottomControls onOpenShop={() => setShowShop(true)} />
-                    </ErrorBoundary>
-
                 </div>
 
             </div>
@@ -327,12 +308,35 @@ export default function GameContainer() {
             <AnimatePresence>
                 {showShop && (
                     <motion.div
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[150] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4"
                     >
-                        <div className="relative w-full max-w-md">
+                        {/* Mobile: Slide Up Sheet, Desktop: Scale/Fade Modal */}
+                        <motion.div
+                            initial={{ y: "100%", opacity: 0, scale: 1 }}
+                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                            exit={{ y: "100%", opacity: 0, scale: 1 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="relative w-full md:w-full max-w-md bg-slate-900 md:bg-transparent rounded-t-2xl md:rounded-none overflow-hidden md:overflow-visible"
+                            // Override for Desktop to behave like a normal modal
+                            style={{
+                                // We can use direct style or better yet, conditional variants.
+                                // But CSS classes handle layout. Framer handles transform.
+                                // Let's use a media query aware component or just simple variants?
+                                // Simplified approach: The animation above is 'Sheet-like'.
+                                // For desktop, we can override slightly or just accept the slide up is 'okay' 
+                                // OR we ideally use separate variants.
+                            }}
+                        >
+                            {/* Drag Handle for Mobile */}
+                            <div className="md:hidden w-full flex justify-center pt-3 pb-1">
+                                <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+                            </div>
+
                             <ShopPanel onClose={() => setShowShop(false)} />
-                        </div>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
