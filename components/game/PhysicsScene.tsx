@@ -205,7 +205,7 @@ const PhysicsScene = React.memo(() => {
                         addScore(ORB_LEVELS[level].score);
 
                         // 1. Audio
-                        playMergeSound();
+                        playMergeSound(level);
 
                         // 2. Haptics (Mobile Vibe)
                         // Light vibration for small orbs, heavy for big ones
