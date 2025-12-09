@@ -348,12 +348,18 @@ function InventoryButton({ icon, count, label, color, onClick, active, className
         green: 'bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30'
     };
 
+    const activeColors: any = {
+        blue: 'bg-blue-500 border-blue-400 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]',
+        red: 'bg-red-500 border-red-400 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]',
+        green: 'bg-green-500 border-green-400 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)]'
+    };
+
     return (
         <button
             onClick={onClick}
             className={`
                 relative flex items-center gap-2 px-3 py-3 rounded-lg border transition-all active:scale-95
-                ${active ? 'bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]' : colors[color]}
+                ${active ? activeColors[color] : colors[color]}
                 ${className}
             `}
         >
