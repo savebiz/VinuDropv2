@@ -493,11 +493,12 @@ const PhysicsScene = React.memo(() => {
                 // Standard: Add padding X (Pillarbox) -> This causes Side Bars (Yellow)
                 // User Request: Remove Side Bars -> "Cover" behavior (Crop Top/Bottom)
                 const visibleHeight = GAME_WIDTH / viewAspectRatio;
-                const cropY = (GAME_HEIGHT - visibleHeight) / 2;
-                
+
+                // Align Bottom (Ensure JAR BASE is visible)
+                // We crop the TOP (Air), not the Bottom (Floor).
                 Matter.Render.lookAt(render, {
-                     min: { x: 0, y: cropY },
-                     max: { x: GAME_WIDTH, y: GAME_HEIGHT - cropY }
+                    min: { x: 0, y: GAME_HEIGHT - visibleHeight },
+                    max: { x: GAME_WIDTH, y: GAME_HEIGHT }
                 });
             } else {
                 // View is taller than game
@@ -508,10 +509,10 @@ const PhysicsScene = React.memo(() => {
                 // So for TALL screens (Mobile Portrait), we MUST Letterbox (Padding Y) or stretch.
                 // OR we move the Camera?
                 // If we remove Side Padding (Yellow), that implies we were in the "View > Game" case.
-                
+
                 // Let's assume the user was seeing Pillarboxing (Side bars).
                 // So the first block change handles it.
-                
+
                 // For the second block (Tall screens), we prefer to see the whole width.
                 // We keep Padding Y (Letterbox).
                 // But the user complained about "padding at top and bottom... green".
@@ -521,7 +522,7 @@ const PhysicsScene = React.memo(() => {
                 // I will assume standard Fit Width logic for tall screens is fine.
                 const visibleHeight = GAME_WIDTH / viewAspectRatio;
                 paddingY = (visibleHeight - GAME_HEIGHT) / 2;
-                
+
                 Matter.Render.lookAt(render, {
                     min: { x: 0, y: -paddingY },
                     max: { x: GAME_WIDTH, y: GAME_HEIGHT + paddingY }

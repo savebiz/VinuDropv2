@@ -1,21 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
-import { BarChart2 } from 'lucide-react';
+import { BarChart2, Menu, RotateCw, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DailyRewardButton } from '@/components/game/DailyRewardButton';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface MobileTopHUDProps {
     onOpenLeaderboard: () => void;
 }
 
 export const MobileTopHUD = ({ onOpenLeaderboard }: MobileTopHUDProps) => {
-    const { score } = useGameStore();
+    const { score, resetGame } = useGameStore();
+    const [showMenu, setShowMenu] = useState(false);
 
     // Safety checks for rendering
     const safeScore = (score !== undefined && score !== null) ? score : 0;
 
+    const handleRestart = () => {
+        if (confirm("Are you sure you want to restart?")) {
+            resetGame();
+            setShowMenu(false);
+        }
+    };
+
     return (
-        <div className="w-full flex justify-between items-start p-2 z-40 bg-transparent">
+        <div className="w-full flex justify-between items-start p-2 z-40 bg-transparent relative">
             <div className="pointer-events-auto flex flex-col gap-1">
                 <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 shadow-lg">
                     <span className="text-[9px] uppercase text-cyan-300 font-bold tracking-wider">Score</span>
@@ -25,15 +34,56 @@ export const MobileTopHUD = ({ onOpenLeaderboard }: MobileTopHUDProps) => {
                 </div>
             </div>
 
-            <div className="pointer-events-auto flex gap-2 items-start">
+            <div className="pointer-events-auto flex gap-4 items-center">
                 {/* Daily Reward - Compact */}
                 <div className="scale-75 origin-top-right -mr-2">
                     <DailyRewardButton />
                 </div>
 
-                <Button onClick={onOpenLeaderboard} variant="secondary" className="w-8 h-8 p-0 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10">
-                    <BarChart2 size={16} className="text-white" />
-                </Button>
+                {/* Hamburger Menu */}
+                <div className="relative">
+                    <Button
+                        onClick={() => setShowMenu(!showMenu)}
+                        variant="secondary"
+                        className="w-9 h-9 p-0 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10 active:scale-95 transition-all"
+                    >
+                        {showMenu ? <X size={18} className="text-white" /> : <Menu size={18} className="text-white" />}
+                    </Button>
+
+                    <AnimatePresence>
+                        {showMenu && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -10, scale: 0.9 }}
+                                className="absolute top-12 right-0 w-48 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl p-2 flex flex-col gap-1 z-50"
+                            >
+                                <button
+                                    onClick={handleRestart}
+                                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/10 text-white text-sm font-bold transition-colors text-left"
+                                >
+                                    <RotateCw size={16} className="text-cyan-400" />
+                                    Restart Game
+                                </button>
+                                <div className="h-px bg-white/10 my-1" />
+                                <button
+                                    onClick={() => { onOpenLeaderboard(); setShowMenu(false); }}
+                                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/10 text-white text-sm font-bold transition-colors text-left"
+                                >
+                                    <User size={16} className="text-purple-400" />
+                                    Set Username
+                                </button>
+                                <button
+                                    onClick={() => { onOpenLeaderboard(); setShowMenu(false); }}
+                                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/10 text-white text-sm font-bold transition-colors text-left"
+                                >
+                                    <BarChart2 size={16} className="text-yellow-400" />
+                                    Leaderboard
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
         </div>
     );
