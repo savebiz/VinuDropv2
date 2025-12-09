@@ -212,8 +212,6 @@ export default function GameContainer() {
 
                             <hr className="border-white/10" />
 
-                            <hr className="border-white/10" />
-
                             {/* Inventory Buttons (Moved Up) */}
                             <div className="flex gap-2 w-full">
                                 <InventoryButton
@@ -245,10 +243,15 @@ export default function GameContainer() {
                                 />
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="flex flex-col gap-3 w-full">
                                 <Button onClick={() => setShowShop(true)} variant="primary" className="w-full flex items-center justify-center gap-2">
                                     <ShoppingBag size={18} /> Shop
                                 </Button>
+
+                                <div className="px-2">
+                                    <hr className="border-white/10" />
+                                </div>
+
                                 <Button onClick={() => setShowLeaderboard(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
                                     <BarChart2 size={18} /> Leaderboard
                                 </Button>
