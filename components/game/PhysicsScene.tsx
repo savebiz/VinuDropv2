@@ -312,17 +312,31 @@ const PhysicsScene = React.memo(() => {
 
     // Handle Mouse/Touch Interaction
     const handlePointerDown = (e: React.PointerEvent) => {
-        if (!engineRef.current) return;
+        if (!engineRef.current || !renderRef.current) return;
         const rect = sceneRef.current?.getBoundingClientRect();
         if (!rect) return;
+
+        // Get relative mouse position on canvas element
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+
+        // Transform to World Coordinates (Account for scaling/padding)
+        const render = renderRef.current;
+        const bounds = render.bounds;
+        const scaleX = (bounds.max.x - bounds.min.x) / rect.width;
+        const scaleY = (bounds.max.y - bounds.min.y) / rect.height;
+
+        const worldX = bounds.min.x + x * scaleX;
+        const worldY = bounds.min.y + y * scaleY;
 
         // --- LASER MODE ---
         if (laserMode) {
             // ... existing laser logic ...
             const bodies = Matter.Composite.allBodies(engineRef.current.world);
-            const clickedBodies = Matter.Query.point(bodies, { x, y });
+            // Query using TRANSFORMED world coordinates
+            const clickedBodies = Matter.Query.point(bodies, { x: worldX, y: worldY });
+
+            // Filter targets (ignore sensors/walls)
             const target = clickedBodies.find(b => !b.isStatic && b.label !== 'sensor');
 
             if (target) {
@@ -331,6 +345,14 @@ const PhysicsScene = React.memo(() => {
                     toggleLaserMode();
                     // Audio for laser? Maybe drop sound for now
                     actionsRef.current.playDropSound();
+
+                    // Spawn Explosion Effect at the target position
+                    actionsRef.current.spawnEffect({
+                        type: 'EXPLOSION',
+                        x: target.position.x,
+                        y: target.position.y,
+                        color: '#ff0000' // Red explosion for laser
+                    });
                 } else {
                     alert("Out of Precision Lasers!");
                     toggleLaserMode();
@@ -342,7 +364,9 @@ const PhysicsScene = React.memo(() => {
         // --- NORMAL DROP MODE ---
         if (!canDrop) return;
 
-        const clampedX = Math.max(ORB_LEVELS[nextOrbLevel].radius, Math.min(GAME_WIDTH - ORB_LEVELS[nextOrbLevel].radius, x));
+        // For dropping, we clamp the X position to the game world width, 
+        // using the worldX we calculated (handling scale properly).
+        const clampedX = Math.max(ORB_LEVELS[nextOrbLevel].radius, Math.min(GAME_WIDTH - ORB_LEVELS[nextOrbLevel].radius, worldX));
 
         // Play Drop Sound & Start BGM
         actionsRef.current.playDropSound();
@@ -430,8 +454,12 @@ const PhysicsScene = React.memo(() => {
     return (
         <div
             ref={sceneRef}
-            className={`relative w-full h-full overflow-hidden rounded-xl bg-background transition-colors duration-500 ${laserMode ? 'cursor-crosshair' : 'cursor-pointer'}`}
-            style={{ width: '100%', height: '100%' }}
+            className={`relative w-full h-full overflow-hidden rounded-xl bg-background transition-colors duration-500`}
+            style={{
+                width: '100%',
+                height: '100%',
+                cursor: laserMode ? 'url(/cursor-target.png) 16 16, crosshair' : 'pointer'
+            }}
             onPointerDown={handlePointerDown}
         >
             {/* Danger Line Overlay - Scaled? Use % or fix based on physics world projection? 
