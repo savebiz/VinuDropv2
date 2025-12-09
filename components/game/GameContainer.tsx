@@ -268,9 +268,9 @@ export default function GameContainer() {
                     </ErrorBoundary>
                 </div>
             </div>
-        </div>
 
-            {/* --- MODALS & OVERLAYS --- */ }
+
+            {/* --- MODALS & OVERLAYS --- */}
             <AnimatePresence>
                 {isGameOver && (
                     <motion.div
