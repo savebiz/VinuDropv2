@@ -17,7 +17,6 @@ function AppContent() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-  return (
     <div className={`h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-500 ${theme === 'cosmic' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-900'}`}>
       <NetworkBanner />
       {/* Header */}
