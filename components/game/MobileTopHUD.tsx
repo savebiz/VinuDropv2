@@ -15,7 +15,7 @@ export const MobileTopHUD = ({ onOpenLeaderboard }: MobileTopHUDProps) => {
     const safeScore = (score !== undefined && score !== null) ? score : 0;
 
     return (
-        <div className="absolute top-0 left-0 right-0 pointer-events-none flex justify-between items-start p-4 z-40">
+        <div className="w-full flex justify-between items-start p-4 z-40 bg-transparent">
             <div className="pointer-events-auto flex flex-col gap-1">
                 <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 shadow-lg">
                     <span className="text-[10px] uppercase text-cyan-300 font-bold tracking-wider">Score</span>

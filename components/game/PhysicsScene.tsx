@@ -8,6 +8,9 @@ import { useGameAudio } from "@/hooks/useGameAudio";
 import { useVFXStore } from "@/store/vfxStore";
 import { PARTICLE_COLORS } from "@/lib/assets";
 
+import confetti from "canvas-confetti";
+import { useHaptic } from "@/hooks/useHaptic";
+
 // Wrap in React.memo to prevent re-renders from parent state changes (like Theme)
 const PhysicsScene = React.memo(() => {
     const sceneRef = useRef<HTMLDivElement>(null);
@@ -25,11 +28,12 @@ const PhysicsScene = React.memo(() => {
         laserMode,
         useStrike,
         toggleLaserMode,
-        triggerShake // Get triggerShake
+        triggerShake
     } = useGameStore();
 
     const { playMergeSound, playDropSound, startBGM } = useGameAudio();
     const { spawnEffect } = useVFXStore();
+    const { trigger: triggerHaptic } = useHaptic();
 
     // Refs to avoid stale closures in Matter.js events
     const actionsRef = useRef({
@@ -38,13 +42,14 @@ const PhysicsScene = React.memo(() => {
         startBGM,
         triggerShake,
         spawnEffect,
-        addScore
+        addScore,
+        triggerHaptic
     });
 
     // Update refs on render
     useEffect(() => {
-        actionsRef.current = { playMergeSound, playDropSound, startBGM, triggerShake, spawnEffect, addScore };
-    }, [playMergeSound, playDropSound, startBGM, triggerShake, spawnEffect, addScore]);
+        actionsRef.current = { playMergeSound, playDropSound, startBGM, triggerShake, spawnEffect, addScore, triggerHaptic };
+    }, [playMergeSound, playDropSound, startBGM, triggerShake, spawnEffect, addScore, triggerHaptic]);
 
     const [canDrop, setCanDrop] = useState(true);
 
@@ -195,9 +200,59 @@ const PhysicsScene = React.memo(() => {
                         World.add(world, newOrb);
 
                         // --- JUICE START ---
-                        const { playMergeSound, triggerShake, spawnEffect, addScore } = actionsRef.current;
+                        const { playMergeSound, triggerShake, spawnEffect, addScore, triggerHaptic } = actionsRef.current;
 
                         addScore(ORB_LEVELS[level].score);
+
+                        // 1. Audio
+                        playMergeSound();
+
+                        // 2. Haptics (Mobile Vibe)
+                        // Light vibration for small orbs, heavy for big ones
+                        if (triggerHaptic) {
+                            triggerHaptic(level < 4 ? 5 : level < 8 ? 10 : [10, 50, 10]);
+                        }
+
+                        // 3. Screen Shake (Visual)
+                        if (level > 4) triggerShake(level * 2);
+
+                        // 4. Particles (Canvas Confetti for "Juicy" Pop)
+                        // Calculate screen coordinates for the confetti origin (0 to 1 relative to viewport)
+                        if (sceneRef.current) {
+                            const rect = sceneRef.current.getBoundingClientRect();
+                            // Physics x/y are 0-600 / 0-800. We map them to the canvas rect.
+                            // However, let's assume the render view matches the physics size 1:1 or scaled.
+                            const scaleX = rect.width / GAME_WIDTH;
+                            const scaleY = rect.height / GAME_HEIGHT;
+
+                            const screenX = rect.left + (midX * scaleX);
+                            const screenY = rect.top + (midY * scaleY);
+
+                            const normalizedX = screenX / window.innerWidth;
+                            const normalizedY = screenY / window.innerHeight;
+
+                            // Dynamic particle count based on level
+                            const particleCount = (level + 1) * 3;
+                            const spread = 30 + (level * 5);
+
+                            confetti({
+                                particleCount: particleCount,
+                                spread: spread,
+                                origin: { x: normalizedX, y: normalizedY },
+                                colors: [ORB_LEVELS[newLevel].color, '#ffffff', ORB_LEVELS[level].color],
+                                disableForReducedMotion: true,
+                                zIndex: 200, // Above UI
+                                startVelocity: 15,
+                                gravity: 0.8,
+                                scalar: 0.8,
+                                ticks: 100
+                            });
+                        }
+
+                        // Legacy VFX store effect (keep for additional juice)
+                        spawnEffect(midX, midY, ORB_LEVELS[level].color);
+
+                        // -------------------
                         playMergeSound(level);
 
                         // Calculate Screen Coordinates for VFX

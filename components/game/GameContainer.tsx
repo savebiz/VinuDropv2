@@ -164,8 +164,13 @@ export default function GameContainer() {
                         transition-all duration-300
                     "
                 >
-                    {/* Top HUD (Mobile Only Overlay) */}
-                    <div className="md:hidden absolute inset-0 z-50 pointer-events-none">
+                    {/* --- VIBE: Aurora Background (Mobile Only) --- */}
+                    <div className="md:hidden absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                        <div className="absolute -top-[20%] -left-[20%] w-[140%] h-[60%] bg-purple-900/30 blur-[80px] rounded-full animate-pulse" />
+                        <div className="absolute top-[40%] -right-[20%] w-[140%] h-[60%] bg-cyan-900/20 blur-[80px] rounded-full animate-pulse delay-1000" />
+                    </div>
+                    {/* Top HUD (Relative Flex Item) */}
+                    <div className="md:hidden w-full shrink-0 z-50">
                         <MobileTopHUD onOpenLeaderboard={() => setShowLeaderboard(true)} />
                     </div>
 
@@ -331,9 +336,11 @@ export default function GameContainer() {
                             }}
                         >
                             {/* Drag Handle for Mobile */}
-                            <div className="md:hidden w-full flex justify-center pt-3 pb-1">
+                            <div className="md:hidden w-full flex flex-col items-center pt-3 pb-2 gap-1" onClick={() => setShowShop(false)}>
                                 <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+                                <div className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Close</div>
                             </div>
+
 
                             <ShopPanel onClose={() => setShowShop(false)} />
                         </motion.div>

@@ -50,8 +50,8 @@ export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) 
                     {_hasHydrated && ORB_LEVELS && ORB_LEVELS[safeNextLevel] && (
                         <div
                             style={{
-                                width: ORB_LEVELS[safeNextLevel].radius * 2 * 0.8,
-                                height: ORB_LEVELS[safeNextLevel].radius * 2 * 0.8,
+                                width: ORB_LEVELS[safeNextLevel].radius * 2 * 0.55,
+                                height: ORB_LEVELS[safeNextLevel].radius * 2 * 0.55,
                                 backgroundColor: ORB_LEVELS[safeNextLevel].color,
                                 boxShadow: `inset 0 -2px 5px rgba(0,0,0,0.3), 0 0 15px ${ORB_LEVELS[safeNextLevel].color}`,
                                 borderRadius: '50%'
