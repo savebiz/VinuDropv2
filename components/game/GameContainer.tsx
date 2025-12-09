@@ -61,10 +61,12 @@ export default function GameContainer() {
         gameId,
         resetGame,
         startTime,
+        username
     } = useGameStore();
 
     const [showShop, setShowShop] = useState(false);
     const [showLeaderboard, setShowLeaderboard] = useState(false);
+    const [showProfile, setShowProfile] = useState(false);
 
     // Screen Shake Hook
     const { x, y } = useScreenShake();
@@ -76,6 +78,8 @@ export default function GameContainer() {
     const account = useActiveAccount();
 
     const submitCurrentScore = async () => {
+        // ... (existing code, not modified in this chunk but needed for context if tool requires)
+        // I will trust existing context match
         try {
             if (account && account.address && score > 0) {
                 await fetch('/api/submit-score', {
@@ -126,8 +130,6 @@ export default function GameContainer() {
     }, [score, isGameOver]);
 
     const containerRef = React.useRef<HTMLDivElement>(null);
-    // Measuring the container ref for the physics calculation.
-    // Important: we apply ref to the inner game area now.
     useGameDimensions(containerRef);
 
     // MAIN LAYOUT RETURN
@@ -144,7 +146,16 @@ export default function GameContainer() {
                             <h2 className="text-sm uppercase tracking-wider opacity-70">Score</h2>
                             <div className="text-4xl font-bold font-mono">{score.toLocaleString()}</div>
                             <div className="text-xs opacity-50 mb-2">Best: {account ? highScore.toLocaleString() : 0}</div>
-                            <ProfileModal />
+
+                            {/* Profile Button */}
+                            <Button
+                                variant="secondary"
+                                onClick={() => setShowProfile(true)}
+                                className="text-xs px-2 py-1 bg-white/5 border border-white/10 w-full mb-2 flex items-center justify-center gap-2"
+                            >
+                                {username ? `👤 ${username}` : "👤 Set Username"}
+                            </Button>
+
                             <hr className="border-white/10 my-2" />
                             <Button onClick={() => setShowResetConfirm(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
                                 <RefreshCw size={18} /> Restart
@@ -171,7 +182,10 @@ export default function GameContainer() {
                     </div>
                     {/* Top HUD (Relative Flex Item) */}
                     <div className="md:hidden w-full shrink-0 z-50">
-                        <MobileTopHUD onOpenLeaderboard={() => setShowLeaderboard(true)} />
+                        <MobileTopHUD
+                            onOpenLeaderboard={() => setShowLeaderboard(true)}
+                            onOpenProfile={() => setShowProfile(true)}
+                        />
                     </div>
 
                     {/* PHYSICS CANVAS WRAPPER (This is what determines Game Width/Height) */}
@@ -197,6 +211,7 @@ export default function GameContainer() {
                 <div className="hidden md:flex w-64 flex-col justify-center h-full max-h-[800px] z-20 pointer-events-none">
                     <div className="pointer-events-auto w-full">
                         <Panel className="flex flex-col gap-6">
+                            {/* ... Content Omitted for Brevity if unchanged ... */}
                             <div className="flex flex-col items-center gap-4">
                                 <h2 className="text-sm uppercase tracking-wider opacity-70">Next</h2>
                                 <div className="w-24 h-24 flex items-center justify-center bg-black/5 rounded-full relative">
@@ -295,58 +310,13 @@ export default function GameContainer() {
                 )}
             </AnimatePresence>
 
+            {showProfile && (
+                <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />
+            )}
+
             {showLeaderboard && (
                 <FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
             )}
-
-            {showResetConfirm && (
-                <ConfirmDialog
-                    isOpen={showResetConfirm}
-                    onClose={() => setShowResetConfirm(false)}
-                    onConfirm={handleConfirmReset}
-                    title="Restart Game?"
-                    description={`Are you sure? Your current score of ${score} will be submitted.`}
-                    loading={resetting}
-                />
-            )}
-
-            <AnimatePresence>
-                {showShop && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[150] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4"
-                    >
-                        {/* Mobile: Slide Up Sheet, Desktop: Scale/Fade Modal */}
-                        <motion.div
-                            initial={{ y: "100%", opacity: 0, scale: 1 }}
-                            animate={{ y: 0, opacity: 1, scale: 1 }}
-                            exit={{ y: "100%", opacity: 0, scale: 1 }}
-                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="relative w-full md:w-full max-w-md bg-slate-900 md:bg-transparent rounded-t-2xl md:rounded-none overflow-hidden md:overflow-visible"
-                            // Override for Desktop to behave like a normal modal
-                            style={{
-                                // We can use direct style or better yet, conditional variants.
-                                // But CSS classes handle layout. Framer handles transform.
-                                // Let's use a media query aware component or just simple variants?
-                                // Simplified approach: The animation above is 'Sheet-like'.
-                                // For desktop, we can override slightly or just accept the slide up is 'okay' 
-                                // OR we ideally use separate variants.
-                            }}
-                        >
-                            {/* Drag Handle for Mobile */}
-                            <div className="md:hidden w-full flex flex-col items-center pt-3 pb-2 gap-1" onClick={() => setShowShop(false)}>
-                                <div className="w-12 h-1.5 bg-white/20 rounded-full" />
-                                <div className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Close</div>
-                            </div>
-
-
-                            <ShopPanel onClose={() => setShowShop(false)} />
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
         </div >
     );

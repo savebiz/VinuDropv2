@@ -7,9 +7,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 interface MobileTopHUDProps {
     onOpenLeaderboard: () => void;
+    onOpenProfile: () => void;
 }
 
-export const MobileTopHUD = ({ onOpenLeaderboard }: MobileTopHUDProps) => {
+export const MobileTopHUD = ({ onOpenLeaderboard, onOpenProfile }: MobileTopHUDProps) => {
     const { score, resetGame } = useGameStore();
     const [showMenu, setShowMenu] = useState(false);
 
@@ -24,7 +25,7 @@ export const MobileTopHUD = ({ onOpenLeaderboard }: MobileTopHUDProps) => {
     };
 
     return (
-        <div className="w-full flex justify-between items-start p-2 z-40 bg-transparent relative">
+        <div className="w-full flex justify-between items-center p-2 z-40 bg-transparent relative">
             <div className="pointer-events-auto flex flex-col gap-1">
                 <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 shadow-lg">
                     <span className="text-[9px] uppercase text-cyan-300 font-bold tracking-wider">Score</span>
@@ -36,7 +37,7 @@ export const MobileTopHUD = ({ onOpenLeaderboard }: MobileTopHUDProps) => {
 
             <div className="pointer-events-auto flex gap-4 items-center">
                 {/* Daily Reward - Compact */}
-                <div className="scale-75 origin-top-right -mr-2">
+                <div className="scale-75 origin-right -mr-2">
                     <DailyRewardButton />
                 </div>
 
@@ -67,7 +68,7 @@ export const MobileTopHUD = ({ onOpenLeaderboard }: MobileTopHUDProps) => {
                                 </button>
                                 <div className="h-px bg-white/10 my-1" />
                                 <button
-                                    onClick={() => { onOpenLeaderboard(); setShowMenu(false); }}
+                                    onClick={() => { onOpenProfile(); setShowMenu(false); }}
                                     className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/10 text-white text-sm font-bold transition-colors text-left"
                                 >
                                     <User size={16} className="text-purple-400" />
