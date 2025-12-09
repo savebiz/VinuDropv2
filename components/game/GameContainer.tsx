@@ -25,6 +25,7 @@ import VFXLayer from "@/components/game/VFXLayer";
 import { useScreenShake } from "@/hooks/useScreenShake";
 import { MobileHUD } from "./MobileHUD";
 import { useGameDimensions } from "@/hooks/useGameDimensions";
+import { ErrorBoundary } from '@/components/utility/ErrorBoundary';
 
 
 // import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -247,24 +248,29 @@ export default function GameContainer() {
 
             {/* --- LAYOUT: MOBILE HUD (Overlay) --- */}
             {isMobile && (
-                <MobileHUD
-                    onOpenShop={() => setShowShop(true)}
-                    onOpenLeaderboard={() => setShowLeaderboard(true)}
-                />
+                <ErrorBoundary fallback={null}>
+                    <MobileHUD
+                        onOpenShop={() => setShowShop(true)}
+                        onOpenLeaderboard={() => setShowLeaderboard(true)}
+                    />
+                </ErrorBoundary>
             )}
 
             {/* --- GAME LAYER (CENTERED) --- */}
             <div className="absolute inset-0 flex items-center justify-center z-0">
                 {/* Container for the physics scene allows us to control max constraints */}
-                <div className="relative w-full h-full lg:max-w-md lg:h-auto lg:aspect-[3/4] flex items-center justify-center">
-                    <motion.div style={{ x, y }} className="relative w-full h-full">
-                        <VFXLayer />
-                        <PhysicsScene key={gameId} />
-                    </motion.div>
+                <div className="relative w-full h-full lg:h-[90vh] lg:w-auto lg:aspect-[3/4] flex items-center justify-center">
+                    <ErrorBoundary>
+                        <motion.div style={{ x, y }} className="relative w-full h-full">
+                            <VFXLayer />
+                            <PhysicsScene key={gameId} />
+                        </motion.div>
+                    </ErrorBoundary>
                 </div>
             </div>
+        </div>
 
-            {/* --- MODALS & OVERLAYS --- */}
+            {/* --- MODALS & OVERLAYS --- */ }
             <AnimatePresence>
                 {isGameOver && (
                     <motion.div
@@ -314,7 +320,7 @@ export default function GameContainer() {
                 )}
             </AnimatePresence>
 
-        </div>
+        </div >
     );
 };
 
