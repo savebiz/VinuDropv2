@@ -259,7 +259,8 @@ export default function GameContainer() {
             {/* --- GAME LAYER (CENTERED) --- */}
             <div className="absolute inset-0 flex items-center justify-center z-0">
                 {/* Container for the physics scene allows us to control max constraints */}
-                <div className="relative w-full h-full lg:h-[90vh] lg:w-auto lg:aspect-[3/4] flex items-center justify-center">
+                {/* Container for the physics scene allows us to control max constraints */}
+                <div className="relative w-full h-full lg:max-h-[85vh] lg:aspect-[3/4] flex items-center justify-center">
                     <ErrorBoundary>
                         <motion.div style={{ x, y }} className="relative w-full h-full">
                             <VFXLayer />

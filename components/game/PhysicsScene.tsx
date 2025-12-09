@@ -438,7 +438,7 @@ const PhysicsScene = React.memo(() => {
         <div
             ref={sceneRef}
             className={`relative w-full h-full overflow-hidden rounded-xl bg-background transition-colors duration-500 ${laserMode ? 'cursor-crosshair' : 'cursor-pointer'}`}
-            // style={{ width: GAME_WIDTH, height: GAME_HEIGHT }} <--- REMOVED FIXED SIZE
+            style={{ width: '100%', height: '100%' }}
             onPointerDown={handlePointerDown}
         >
             {/* Danger Line Overlay - Scaled? Use % or fix based on physics world projection? 

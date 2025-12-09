@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import NetworkBanner from "@/components/ui/NetworkBanner";
 import { Moon, Sun, Volume2, VolumeX } from "lucide-react";
 import { useGameStore } from "@/store/gameStore";
+import { ErrorBoundary } from '@/components/utility/ErrorBoundary';
 
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
@@ -86,7 +87,9 @@ function AppContent() {
           )}
         </div>
 
-        <GameContainer />
+        <ErrorBoundary>
+          <GameContainer />
+        </ErrorBoundary>
       </main>
 
       <footer className="p-4 text-center text-xs opacity-50">
