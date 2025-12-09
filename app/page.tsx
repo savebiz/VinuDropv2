@@ -71,10 +71,6 @@ function AppContent() {
               className: `!backdrop-blur-md !border !h-8 !px-2 !text-xs ${theme === 'cosmic' ? '!bg-white/10 !border-white/10 !text-white' : '!bg-black/5 !border-black/10 !text-black'}`,
               displayBalanceToken: {} // Hide balance to make it compact? Or just default.
             }}
-            accountAbstraction={{
-              chain: activeChain,
-              sponsorGas: true
-            }}
           />
         </div>
       </header>
