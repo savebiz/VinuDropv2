@@ -23,7 +23,8 @@ const FullLeaderboardModal = dynamic(() => import("@/components/leaderboard/Full
 import { useState } from "react";
 import VFXLayer from "@/components/game/VFXLayer";
 import { useScreenShake } from "@/hooks/useScreenShake";
-import { MobileHUD } from "./MobileHUD";
+import { MobileTopHUD } from "./MobileTopHUD";
+import { MobileBottomControls } from "./MobileBottomControls";
 import { useGameDimensions } from "@/hooks/useGameDimensions";
 import { ErrorBoundary } from '@/components/utility/ErrorBoundary';
 
@@ -256,14 +257,27 @@ export default function GameContainer() {
                     </div>
                 </div>
 
-                {/* MOBILE HUD (Mobile Only) */}
-                <div className="md:hidden absolute inset-0 pointer-events-none z-50">
+                {/* MOBILE LAYOUT (Mobile Only) */}
+                <div className="md:hidden flex flex-col w-full h-full relative overflow-hidden">
+
+                    {/* Game Area (Flex 1) */}
+                    <div className="relative flex-1 w-full min-h-0 bg-black/20 overflow-hidden">
+                        <ErrorBoundary>
+                            <motion.div style={{ x, y }} className="relative w-full h-full">
+                                <VFXLayer />
+                                <PhysicsScene key={gameId} />
+
+                                {/* Top HUD Overlay */}
+                                <MobileTopHUD onOpenLeaderboard={() => setShowLeaderboard(true)} />
+                            </motion.div>
+                        </ErrorBoundary>
+                    </div>
+
+                    {/* Bottom Controls Bar (Fixed Height) */}
                     <ErrorBoundary fallback={null}>
-                        <MobileHUD
-                            onOpenShop={() => setShowShop(true)}
-                            onOpenLeaderboard={() => setShowLeaderboard(true)}
-                        />
+                        <MobileBottomControls onOpenShop={() => setShowShop(true)} />
                     </ErrorBoundary>
+
                 </div>
 
             </div>

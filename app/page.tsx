@@ -33,25 +33,25 @@ function AppContent() {
           <h1 className="text-xl font-bold tracking-tighter">VinuDrop</h1>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Button
             onClick={useGameStore((state) => state.toggleMute)}
             variant="secondary"
-            className={`p-2 rounded-full w-9 h-9 flex items-center justify-center group transition-colors ${theme === 'cosmic' ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'}`}
+            className={`p-1.5 rounded-full w-8 h-8 flex items-center justify-center group transition-colors ${theme === 'cosmic' ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'}`}
           >
             {useGameStore((state) => state.isMuted) ? (
-              <VolumeX size={18} className={`transition-colors ${theme === 'cosmic' ? 'text-white/70 group-hover:text-white' : 'text-black/50 group-hover:text-black'}`} />
+              <VolumeX size={16} className={`transition-colors ${theme === 'cosmic' ? 'text-white/70 group-hover:text-white' : 'text-black/50 group-hover:text-black'}`} />
             ) : (
-              <Volume2 size={18} className="text-cyan-500" />
+              <Volume2 size={16} className="text-cyan-500" />
             )}
           </Button>
 
           <Button
             onClick={toggleTheme}
             variant="secondary"
-            className={`p-2 rounded-full w-9 h-9 flex items-center justify-center transition-colors ${theme === 'cosmic' ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'}`}
+            className={`p-1.5 rounded-full w-8 h-8 flex items-center justify-center transition-colors ${theme === 'cosmic' ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'}`}
           >
-            {theme === 'cosmic' ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === 'cosmic' ? <Sun size={16} /> : <Moon size={16} />}
           </Button>
 
           <ConnectButton
@@ -65,10 +65,15 @@ function AppContent() {
             }) : lightTheme()}
             connectButton={{
               label: "Connect",
-              className: "!bg-cyan-600 !text-white !font-bold !rounded-lg !px-3 !py-2 !h-auto !text-sm"
+              className: "!bg-cyan-600 !text-white !font-bold !rounded-lg !px-3 !py-1.5 !h-auto !text-xs !min-w-0"
             }}
             detailsButton={{
-              className: `!backdrop-blur-md !border !h-9 ${theme === 'cosmic' ? '!bg-white/10 !border-white/10 !text-white' : '!bg-black/5 !border-black/10 !text-black'}`
+              className: `!backdrop-blur-md !border !h-8 !px-2 !text-xs ${theme === 'cosmic' ? '!bg-white/10 !border-white/10 !text-white' : '!bg-black/5 !border-black/10 !text-black'}`,
+              displayBalanceToken: {} // Hide balance to make it compact? Or just default.
+            }}
+            accountAbstraction={{
+              chain: activeChain,
+              sponsorGas: true
             }}
           />
         </div>
