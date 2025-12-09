@@ -154,7 +154,7 @@ export default function GameContainer() {
 
     // MAIN LAYOUT RETURN
     return (
-        <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-slate-900 touch-none select-none flex flex-col items-center justify-center">
+        <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-transparent touch-none select-none flex flex-col items-center justify-center">
 
             {/* --- DESKTOP LAYOUT (Flex Row) --- */}
             {!isMobile && (

@@ -17,10 +17,11 @@ function AppContent() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden flex flex-col bg-slate-900">
+  return (
+    <div className={`h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-500 ${theme === 'cosmic' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-900'}`}>
       <NetworkBanner />
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-20 px-4 flex justify-between items-center z-50 bg-background/80 backdrop-blur-md shadow-md">
+      <header className={`fixed top-0 left-0 right-0 h-20 px-4 flex justify-between items-center z-50 backdrop-blur-md shadow-md transition-colors duration-500 ${theme === 'cosmic' ? 'bg-slate-900/80' : 'bg-white/80'}`}>
         <div className="flex items-center gap-2">
           <div className="relative w-10 h-10">
             <Image
@@ -37,19 +38,19 @@ function AppContent() {
           <Button
             onClick={useGameStore((state) => state.toggleMute)}
             variant="secondary"
-            className="p-2 rounded-full w-9 h-9 flex items-center justify-center group"
+            className={`p-2 rounded-full w-9 h-9 flex items-center justify-center group transition-colors ${theme === 'cosmic' ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'}`}
           >
             {useGameStore((state) => state.isMuted) ? (
-              <VolumeX size={18} className="text-white/70 group-hover:text-white" />
+              <VolumeX size={18} className={`transition-colors ${theme === 'cosmic' ? 'text-white/70 group-hover:text-white' : 'text-black/50 group-hover:text-black'}`} />
             ) : (
-              <Volume2 size={18} className="text-cyan-400 group-hover:text-cyan-300" />
+              <Volume2 size={18} className="text-cyan-500" />
             )}
           </Button>
 
           <Button
             onClick={toggleTheme}
             variant="secondary"
-            className="p-2 rounded-full w-9 h-9 flex items-center justify-center"
+            className={`p-2 rounded-full w-9 h-9 flex items-center justify-center transition-colors ${theme === 'cosmic' ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'}`}
           >
             {theme === 'cosmic' ? <Sun size={18} /> : <Moon size={18} />}
           </Button>
@@ -68,7 +69,7 @@ function AppContent() {
               className: "!bg-cyan-600 !text-white !font-bold !rounded-lg !px-3 !py-2 !h-auto !text-sm"
             }}
             detailsButton={{
-              className: "!bg-black/5 dark:!bg-white/10 !backdrop-blur-md !border !border-black/10 dark:!border-white/10 !text-black dark:!text-white !h-9"
+              className: `!backdrop-blur-md !border !h-9 ${theme === 'cosmic' ? '!bg-white/10 !border-white/10 !text-white' : '!bg-black/5 !border-black/10 !text-black'}`
             }}
           />
         </div>
@@ -91,7 +92,7 @@ function AppContent() {
         </ErrorBoundary>
       </main>
 
-      <footer className="h-8 flex items-center justify-center text-[10px] opacity-40 shrink-0 z-10 bg-black/20">
+      <footer className={`h-8 flex items-center justify-center text-[10px] shrink-0 z-10 font-bold transition-colors ${theme === 'cosmic' ? 'text-white/40 bg-black/20' : 'text-black/40 bg-white/20'}`}>
         Powered by VinuChain • Built with love by VinuChain Africa
       </footer>
     </div>
