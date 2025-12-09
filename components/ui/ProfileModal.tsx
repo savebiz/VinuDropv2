@@ -8,16 +8,6 @@ import { supabase } from "@/lib/supabaseClient";
 import { Button } from "./Button";
 import { X } from "lucide-react";
 
-"use client";
-
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { useActiveAccount } from "thirdweb/react";
-import { useGameStore } from "@/store/gameStore";
-import { supabase } from "@/lib/supabaseClient";
-import { Button } from "./Button";
-import { X } from "lucide-react";
-
 interface ProfileModalProps {
     isOpen: boolean;
     onClose: () => void;
