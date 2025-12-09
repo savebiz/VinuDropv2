@@ -212,21 +212,16 @@ export default function GameContainer() {
 
                             <hr className="border-white/10" />
 
-                            <div className="space-y-3">
-                                <Button onClick={() => setShowShop(true)} variant="primary" className="w-full flex items-center justify-center gap-2">
-                                    <ShoppingBag size={18} /> Shop
-                                </Button>
-                                <Button onClick={() => setShowLeaderboard(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
-                                    <BarChart2 size={18} /> Leaderboard
-                                </Button>
-                            </div>
+                            <hr className="border-white/10" />
 
-                            {/* Inventory Mini-Bar */}
-                            <div className="flex gap-2">
+                            {/* Inventory Buttons (Moved Up) */}
+                            <div className="flex gap-2 w-full">
                                 <InventoryButton
-                                    icon={<Zap size={16} />}
+                                    icon={<Zap size={18} />}
                                     count={useGameStore((state) => state.shakes)}
+                                    label="Shake"
                                     color="blue"
+                                    className="flex-1 justify-center"
                                     onClick={() => {
                                         const { shakes, useShake, triggerShake } = useGameStore.getState();
                                         if (shakes > 0) {
@@ -236,9 +231,11 @@ export default function GameContainer() {
                                     }}
                                 />
                                 <InventoryButton
-                                    icon={<Target size={16} />}
+                                    icon={<Target size={18} />}
                                     count={useGameStore((state) => state.strikes)}
+                                    label="Laser"
                                     color="red"
+                                    className="flex-1 justify-center"
                                     active={useGameStore((state) => state.laserMode)}
                                     onClick={() => {
                                         const { strikes, toggleLaserMode, laserMode } = useGameStore.getState();
@@ -246,6 +243,15 @@ export default function GameContainer() {
                                         else setShowShop(true);
                                     }}
                                 />
+                            </div>
+
+                            <div className="space-y-3">
+                                <Button onClick={() => setShowShop(true)} variant="primary" className="w-full flex items-center justify-center gap-2">
+                                    <ShoppingBag size={18} /> Shop
+                                </Button>
+                                <Button onClick={() => setShowLeaderboard(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
+                                    <BarChart2 size={18} /> Leaderboard
+                                </Button>
                             </div>
                         </Panel>
                     </div>
@@ -331,7 +337,7 @@ export default function GameContainer() {
 };
 
 
-function InventoryButton({ icon, count, label, color, onClick, active }: any) {
+function InventoryButton({ icon, count, label, color, onClick, active, className }: any) {
     const colors: any = {
         blue: 'bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30',
         red: 'bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30',
@@ -342,13 +348,14 @@ function InventoryButton({ icon, count, label, color, onClick, active }: any) {
         <button
             onClick={onClick}
             className={`
-                relative flex items-center gap-2 px-3 py-2 rounded-lg border transition-all active:scale-95
+                relative flex items-center gap-2 px-3 py-3 rounded-lg border transition-all active:scale-95
                 ${active ? 'bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]' : colors[color]}
+                ${className}
             `}
         >
             {icon}
-            <span className="font-bold text-sm">{label}</span>
-            <span className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-white text-black text-xs font-bold rounded-full shadow-lg">
+            <span className="font-bold text-sm tracking-wide">{label}</span>
+            <span className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center bg-white text-black text-xs font-bold rounded-full shadow-lg ring-2 ring-black/20">
                 {count}
             </span>
         </button>
