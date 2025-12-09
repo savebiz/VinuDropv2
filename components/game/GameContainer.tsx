@@ -269,7 +269,6 @@ export default function GameContainer() {
                 </div>
             </div>
 
-
             {/* --- MODALS & OVERLAYS --- */}
             <AnimatePresence>
                 {isGameOver && (
