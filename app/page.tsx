@@ -93,7 +93,7 @@ function AppContent() {
       </main>
 
       <footer className={`h-8 flex items-center justify-center text-[10px] shrink-0 z-10 font-bold transition-colors ${theme === 'cosmic' ? 'text-white/40 bg-black/20' : 'text-black/40 bg-white/20'}`}>
-        Powered by VinuChain • Built with love by VinuChain Africa
+        Powered by VinuChain • Built with ❤️ by VinuChain Africa
       </footer>
     </div>
   );

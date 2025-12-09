@@ -25,9 +25,13 @@ export const MobileTopHUD = ({ onOpenLeaderboard, onOpenProfile }: MobileTopHUDP
     };
 
     return (
-        <div className="w-full flex justify-between items-center p-2 z-40 bg-transparent relative">
-            <div className="pointer-events-auto flex flex-col gap-1">
-                <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 shadow-lg">
+        <div className="w-full flex justify-between items-center p-2 z-40 bg-slate-900/60 backdrop-blur-xl border-b border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] relative">
+
+            {/* Background Gradient/Glow */}
+            <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/20 via-transparent to-transparent pointer-events-none" />
+
+            <div className="pointer-events-auto flex flex-col gap-1 z-10">
+                <div className="bg-black/20 px-3 py-1.5 rounded-xl border border-white/5 shadow-inner">
                     <span className="text-[9px] uppercase text-cyan-300 font-bold tracking-wider">Score</span>
                     <div className="text-xl font-mono font-bold text-white leading-none">
                         {safeScore.toLocaleString()}
