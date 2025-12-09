@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { ORB_LEVELS } from '@/lib/constants';
 import { useActiveAccount } from 'thirdweb/react';
 import { useHaptic } from '@/hooks/useHaptic';
+import { useTheme } from '@/components/ui/ThemeProvider';
 
 interface MobileBottomControlsProps {
     onOpenShop: () => void;
@@ -14,6 +15,9 @@ export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) 
     const { nextOrbLevel, highScore, _hasHydrated, shakes, strikes, useShake, triggerShake, toggleLaserMode, laserMode } = useGameStore();
     const account = useActiveAccount();
     const { trigger } = useHaptic();
+    const { theme } = useTheme();
+
+    const isDark = theme === 'cosmic';
 
     const safeHighScore = (highScore !== undefined && highScore !== null) ? highScore : 0;
     const safeNextLevel = (nextOrbLevel !== undefined && nextOrbLevel !== null && nextOrbLevel >= 0) ? nextOrbLevel : 0;
@@ -45,15 +49,30 @@ export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) 
     };
 
     return (
-        <div className="h-20 w-full bg-slate-900/60 backdrop-blur-xl border-t border-white/10 flex items-center justify-between px-2 pb-2 relative z-50 shrink-0 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        <div className={`h-20 w-full backdrop-blur-xl border-t flex items-center justify-between px-2 pb-2 relative z-50 shrink-0 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] transition-colors duration-300
+            ${isDark
+                ? 'bg-slate-900/60 border-white/10'
+                : 'bg-white/60 border-slate-200/50 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]'
+            }`}
+        >
 
             {/* Background Gradient/Glow */}
-            <div className="absolute inset-0 bg-gradient-to-t from-cyan-900/20 via-transparent to-transparent pointer-events-none" />
+            <div className={`absolute inset-0 bg-gradient-to-t pointer-events-none transition-colors duration-300
+                ${isDark
+                    ? 'from-cyan-900/20 via-transparent to-transparent'
+                    : 'from-cyan-100/40 via-transparent to-transparent'
+                }`}
+            />
 
             {/* 1. Best Score (Far Left) */}
             <div className="flex flex-col items-center gap-1 z-10 w-12">
-                <div className="text-[8px] text-white/50 uppercase font-bold tracking-wider">Best</div>
-                <div className="flex items-center justify-center gap-0.5 text-yellow-400 font-bold font-mono text-[10px] bg-black/40 px-1.5 py-1 rounded-md border border-white/5 shadow-inner w-full">
+                <div className={`text-[8px] uppercase font-bold tracking-wider transition-colors ${isDark ? 'text-white/50' : 'text-slate-500'}`}>Best</div>
+                <div className={`flex items-center justify-center gap-0.5 font-bold font-mono text-[10px] px-1.5 py-1 rounded-md border shadow-inner w-full transition-colors
+                    ${isDark
+                        ? 'bg-black/40 border-white/5 text-yellow-400'
+                        : 'bg-white/50 border-slate-300 text-yellow-600'
+                    }`}
+                >
                     <Trophy size={9} />
                     <span>{account ? (safeHighScore > 9999 ? `${(safeHighScore / 1000).toFixed(1)}k` : safeHighScore) : 0}</span>
                 </div>
@@ -64,7 +83,11 @@ export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) 
                 <Button
                     onClick={handleShake}
                     variant="secondary"
-                    className="h-9 w-9 p-0 rounded-full flex items-center justify-center bg-blue-500/20 text-blue-400 border border-blue-500/30 active:scale-95 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+                    className={`h-9 w-9 p-0 rounded-full flex items-center justify-center active:scale-95 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] border
+                        ${isDark
+                            ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                            : 'bg-blue-100 text-blue-600 border-blue-200 hover:bg-blue-200'
+                        }`}
                 >
                     <Zap size={16} fill="currentColor" />
                     {shakes > 0 && (
@@ -80,7 +103,12 @@ export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) 
                 {/* Glow */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-cyan-500/20 rounded-full blur-xl group-hover:bg-cyan-400/30 transition-all duration-500" />
 
-                <div className="w-14 h-14 bg-slate-900/80 backdrop-blur-md rounded-full border-4 border-slate-900 flex items-center justify-center shadow-[0_0_25px_rgba(6,182,212,0.4)] relative ring-1 ring-white/10">
+                <div className={`w-14 h-14 backdrop-blur-md rounded-full border-4 flex items-center justify-center shadow-[0_0_25px_rgba(6,182,212,0.4)] relative ring-1 transition-colors
+                    ${isDark
+                        ? 'bg-slate-900/80 border-slate-900 ring-white/10'
+                        : 'bg-white/80 border-white ring-slate-200'
+                    }`}
+                >
                     {_hasHydrated && ORB_LEVELS && ORB_LEVELS[safeNextLevel] && (
                         <div
                             style={{
@@ -95,7 +123,12 @@ export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) 
                     )}
                 </div>
                 {/* Moved Label to BOTTOM */}
-                <div className="absolute -bottom-4 text-[8px] font-bold text-cyan-400 uppercase tracking-widest bg-slate-900/90 backdrop-blur px-2 py-0.5 rounded-full border border-cyan-500/30 shadow-lg">
+                <div className={`absolute -bottom-4 text-[8px] font-bold uppercase tracking-widest backdrop-blur px-2 py-0.5 rounded-full border shadow-lg transition-colors
+                    ${isDark
+                        ? 'bg-slate-900/90 text-cyan-400 border-cyan-500/30'
+                        : 'bg-white/90 text-cyan-700 border-cyan-200'
+                    }`}
+                >
                     Next
                 </div>
             </div>
@@ -108,7 +141,8 @@ export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) 
                     className={`h-9 w-9 p-0 rounded-full flex items-center justify-center border active:scale-95 transition-all shadow-[0_0_15px_rgba(239,68,68,0.3)]
                          ${laserMode
                             ? 'bg-red-500 text-white border-red-500 animate-pulse'
-                            : 'bg-red-500/20 text-red-400 border-red-500/30'}`}
+                            : isDark ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-red-100 text-red-600 border-red-200'
+                        }`}
                 >
                     <Target size={16} />
                     {strikes > 0 && (
@@ -122,7 +156,7 @@ export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) 
 
             {/* 5. Right: Shop Button */}
             <div className="flex flex-col items-center gap-1 z-10 w-12">
-                <div className="text-[8px] text-white/50 uppercase font-bold tracking-wider">Shop</div>
+                <div className={`text-[8px] uppercase font-bold tracking-wider transition-colors ${isDark ? 'text-white/50' : 'text-slate-500'}`}>Shop</div>
                 <Button
                     onClick={handleShopClick}
                     variant="primary"

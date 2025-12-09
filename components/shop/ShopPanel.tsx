@@ -11,6 +11,7 @@ import { VINU_ECONOMY_CONTRACT_ADDRESS } from "@/lib/constants";
 import { client } from "@/app/client";
 import { defineChain, getContract } from "thirdweb";
 import { HeartPulse, Zap, Target, X } from "lucide-react";
+import { useTheme } from "@/components/ui/ThemeProvider";
 
 const vinuchain = defineChain(207);
 
@@ -33,8 +34,11 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
         freeStrikes,
         consumeFreeShake,
         consumeFreeStrike,
-        isGameOver // Added
+        isGameOver
     } = useGameStore();
+
+    const { theme } = useTheme();
+    const isDark = theme === 'cosmic';
 
     const buyItem = (itemName: string, price: string) => {
         return prepareContractCall({
@@ -46,27 +50,32 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
     };
 
     return (
-        <Panel className="w-full max-w-md mx-auto relative">
+        <Panel className={`w-full max-w-md mx-auto relative transition-colors duration-300
+            ${isDark ? '' : '!bg-white !border-slate-200 !shadow-2xl'}`}
+        >
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold flex items-center gap-2">
-                    Shop <span className="text-xs font-normal opacity-50">(Support the Dev & Burn VC)</span>
+                <h2 className={`text-2xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Shop <span className={`text-xs font-normal ${isDark ? 'opacity-50' : 'text-slate-500'} `}>(Support the Dev & Burn VC)</span>
                 </h2>
                 {onClose && (
-                    <button onClick={onClose} className="text-white/70 hover:text-white transition-colors">
+                    <button onClick={onClose} className={`transition-colors ${isDark ? 'text-white/70 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}>
                         <X size={24} />
                     </button>
                 )}
             </div>
             <div className="space-y-4">
                 {/* Shake - Disabled if Game Over */}
-                <div className={`flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10 transition-all ${isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+                <div className={`flex justify-between items-center p-3 rounded-lg border transition-all 
+                    ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}
+                    ${isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}
+                >
                     <div className="flex items-center gap-3">
-                        <div className="bg-blue-500/20 p-2 rounded-lg text-blue-400">
+                        <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
                             <Zap size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold">Shake Reactor (x5)</h3>
-                            <p className="text-xs opacity-70">Jolt the board to unstuck orbs.</p>
+                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Shake Reactor (x5)</h3>
+                            <p className={`text-xs ${isDark ? 'opacity-70 text-white' : 'text-slate-500'}`}>Jolt the board to unstuck orbs.</p>
                         </div>
                     </div>
                     {freeShakes > 0 ? (
@@ -98,14 +107,17 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                 </div>
 
                 {/* Precision Strike - Disabled if Game Over */}
-                <div className={`flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10 transition-all ${isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+                <div className={`flex justify-between items-center p-3 rounded-lg border transition-all 
+                    ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}
+                    ${isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}
+                >
                     <div className="flex items-center gap-3">
-                        <div className="bg-red-500/20 p-2 rounded-lg text-red-400">
+                        <div className={`p-2 rounded-lg ${isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600'}`}>
                             <Target size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold">Precision Laser (x2)</h3>
-                            <p className="text-xs opacity-70">Click to delete orb.</p>
+                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Precision Laser (x2)</h3>
+                            <p className={`text-xs ${isDark ? 'opacity-70 text-white' : 'text-slate-500'}`}>Click to delete orb.</p>
                         </div>
                     </div>
                     {freeStrikes > 0 ? (
@@ -137,14 +149,17 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                 </div>
 
                 {/* Revive - Disabled if Game Active (NOT Game Over) */}
-                <div className={`flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10 transition-all ${!isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+                <div className={`flex justify-between items-center p-3 rounded-lg border transition-all 
+                    ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}
+                    ${!isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}
+                >
                     <div className="flex items-center gap-3">
-                        <div className="bg-green-500/20 p-2 rounded-lg text-green-400">
+                        <div className={`p-2 rounded-lg ${isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
                             <HeartPulse size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold">Revive Protocol</h3>
-                            <p className="text-xs opacity-70">Remove top 50% of orbs. Instant.</p>
+                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Revive Protocol</h3>
+                            <p className={`text-xs ${isDark ? 'opacity-70 text-white' : 'text-slate-500'}`}>Remove top 50% of orbs. Instant.</p>
                         </div>
                     </div>
                     <TransactionButton
