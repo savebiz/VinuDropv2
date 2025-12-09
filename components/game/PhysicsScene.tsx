@@ -382,50 +382,43 @@ const PhysicsScene = React.memo(() => {
             if (!containerWidth || !containerHeight) return;
 
             const render = renderRef.current;
+            const pixelRatio = window.devicePixelRatio || 1;
 
-            // Update canvas size
-            render.canvas.width = containerWidth;
-            render.canvas.height = containerHeight;
+            // Set canvas resolution (High DPI)
+            render.canvas.width = containerWidth * pixelRatio;
+            render.canvas.height = containerHeight * pixelRatio;
 
-            // Calculate scale to fit the physics world (GAME_WIDTH x GAME_HEIGHT) into the container
-            // We want 'contain' behavior (show all physics world, may have letterboxing if aspect differs)
-            // Or 'cover' behavior? Requirement: "Jar remains in the middle... max-width on desktop"
-            // The container in GameContainer handles the max-width aspect ratio usually. 
-            // So we usually just want to match the physics world 1:1 if possible, or scale uniformly.
+            // Set styles to ensure it fills container
+            render.canvas.style.width = `${containerWidth}px`;
+            render.canvas.style.height = `${containerHeight}px`;
 
-            // Let's assume the container is resizing to match our desired aspect ratio roughly, 
-            // but we need to map the physics coordinates (0,0 -> GAME_WIDTH, GAME_HEIGHT) 
-            // to the canvas coordinates (0,0 -> containerWidth, containerHeight).
+            // Center the view on the 600x800 world
+            const viewAspectRatio = containerWidth / containerHeight;
+            const gameAspectRatio = GAME_WIDTH / GAME_HEIGHT;
 
-            const scaleX = containerWidth / GAME_WIDTH;
-            const scaleY = containerHeight / GAME_HEIGHT;
-            const scale = Math.min(scaleX, scaleY);
+            let paddingX = 0;
+            let paddingY = 0;
 
-            // Center the view
-            // render.bounds is the region of the physics world being viewed.
-            // If scale is 1, bounds is 0,0 to width,height.
-            // If scale is 0.5 (container is half size of physics), we effectively view a LARGER area if we don't zoom?
-            // Wait, Matter.Render automatically handles simple scaling if we set pixelRatio? No.
-
-            // Correct approach for Matter.js Responsive Scaling:
-            // 1. Set render.options.width/height (logical size)
-            // 2. Set canvas width/height (display size)
-            // But standard Matter.Render doesn't auto-scale. We used lookAt usually.
-
-            // SIMPLER: Use Matter.Render.lookAt to center the view on the board center.
-            // Board Center: GAME_WIDTH/2, GAME_HEIGHT/2.
-            // Padding: Maybe add some padding.
+            if (viewAspectRatio > gameAspectRatio) {
+                // View is wider than game -> add padding to X
+                const visibleWidth = GAME_HEIGHT * viewAspectRatio; // based on fixed height
+                paddingX = (visibleWidth - GAME_WIDTH) / 2;
+            } else {
+                // View is taller than game -> add padding to Y
+                const visibleHeight = GAME_WIDTH / viewAspectRatio; // based on fixed width
+                paddingY = (visibleHeight - GAME_HEIGHT) / 2;
+            }
 
             Matter.Render.lookAt(render, {
-                min: { x: 0, y: 0 },
-                max: { x: GAME_WIDTH, y: GAME_HEIGHT }
+                min: { x: -paddingX, y: -paddingY },
+                max: { x: GAME_WIDTH + paddingX, y: GAME_HEIGHT + paddingY }
             });
-
-            // If we want exact pixel matching without blur, we might need to handle scaling manually context-wise, 
-            // but lookAt is the robust physics-engine way.
         };
 
-        const resizeObserver = new ResizeObserver(() => handleResize());
+        const resizeObserver = new ResizeObserver(() => {
+            // Use requestAnimationFrame to debounce and ensuring layout
+            requestAnimationFrame(handleResize);
+        });
         resizeObserver.observe(sceneRef.current);
 
         return () => resizeObserver.disconnect();
@@ -461,7 +454,7 @@ const PhysicsScene = React.memo(() => {
             */}
             <div
                 className="absolute w-full border-b-2 border-red-600 border-dashed z-50 pointer-events-none animate-pulse"
-                style={{ top: '15%' }} // Changed to % to be safer with responsiveness
+                style={{ top: '12.5%' }} // 100px / 800px = 12.5% matches the Sensor Y=100
             >
                 <div className="absolute right-0 -top-6 text-red-600 text-xs font-bold bg-black/50 px-2 py-1 rounded">DANGER</div>
             </div>
