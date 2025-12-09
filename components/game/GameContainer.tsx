@@ -188,6 +188,20 @@ export default function GameContainer() {
                     {/* RIGHT PANEL */}
                     <div className="w-64 flex flex-col justify-center h-full max-h-[800px]">
                         <Panel className="flex flex-col gap-6">
+                            <div className="flex flex-col items-center gap-4">
+                                <h2 className="text-sm uppercase tracking-wider opacity-70">Next</h2>
+                                <div className="w-24 h-24 flex items-center justify-center bg-black/5 rounded-full relative">
+                                    {useGameStore(state => state._hasHydrated) && ORB_LEVELS[nextOrbLevel] && (
+                                        <div
+                                            style={{
+                                                width: ORB_LEVELS[nextOrbLevel].radius * 2 * 0.75, // Scale down 0.75x
+                                                height: ORB_LEVELS[nextOrbLevel].radius * 2 * 0.75,
+                                                backgroundColor: ORB_LEVELS[nextOrbLevel].color,
+                                                borderRadius: '50%'
+                                            }}
+                                            className="shadow-lg"
+                                        />
+                                    )}
                                 </div>
                                 <p className="font-bold min-h-[24px]">
                                     {useGameStore(state => state._hasHydrated) ? ORB_LEVELS[nextOrbLevel].name : ''}
@@ -197,82 +211,82 @@ export default function GameContainer() {
                             <hr className="border-white/10" />
 
                             {/* Inventory Buttons (Moved Up) */}
-            <div className="flex gap-2 w-full">
-                <InventoryButton
-                    icon={<Zap size={18} />}
-                    count={useGameStore((state) => state.shakes)}
-                    label="Shake"
-                    color="blue"
-                    className="flex-1 justify-center"
-                    onClick={() => {
-                        const { shakes, useShake, triggerShake } = useGameStore.getState();
-                        if (shakes > 0) {
-                            useShake();
-                            triggerShake();
-                        } else setShowShop(true);
-                    }}
-                />
-                <InventoryButton
-                    icon={<Target size={18} />}
-                    count={useGameStore((state) => state.strikes)}
-                    label="Laser"
-                    color="red"
-                    className="flex-1 justify-center"
-                    active={useGameStore((state) => state.laserMode)}
-                    onClick={() => {
-                        const { strikes, toggleLaserMode, laserMode } = useGameStore.getState();
-                        if (strikes > 0 || laserMode) toggleLaserMode();
-                        else setShowShop(true);
-                    }}
-                />
-            </div>
+                            <div className="flex gap-2 w-full">
+                                <InventoryButton
+                                    icon={<Zap size={18} />}
+                                    count={useGameStore((state) => state.shakes)}
+                                    label="Shake"
+                                    color="blue"
+                                    className="flex-1 justify-center"
+                                    onClick={() => {
+                                        const { shakes, useShake, triggerShake } = useGameStore.getState();
+                                        if (shakes > 0) {
+                                            useShake();
+                                            triggerShake();
+                                        } else setShowShop(true);
+                                    }}
+                                />
+                                <InventoryButton
+                                    icon={<Target size={18} />}
+                                    count={useGameStore((state) => state.strikes)}
+                                    label="Laser"
+                                    color="red"
+                                    className="flex-1 justify-center"
+                                    active={useGameStore((state) => state.laserMode)}
+                                    onClick={() => {
+                                        const { strikes, toggleLaserMode, laserMode } = useGameStore.getState();
+                                        if (strikes > 0 || laserMode) toggleLaserMode();
+                                        else setShowShop(true);
+                                    }}
+                                />
+                            </div>
 
-            <div className="flex flex-col gap-3 w-full">
-                <Button onClick={() => setShowShop(true)} variant="primary" className="w-full flex items-center justify-center gap-2">
-                    <ShoppingBag size={18} /> Shop
-                </Button>
+                            <div className="flex flex-col gap-3 w-full">
+                                <Button onClick={() => setShowShop(true)} variant="primary" className="w-full flex items-center justify-center gap-2">
+                                    <ShoppingBag size={18} /> Shop
+                                </Button>
 
-                <div className="px-2">
-                    <hr className="border-white/10" />
-                </div>
+                                <div className="px-2">
+                                    <hr className="border-white/10" />
+                                </div>
 
-                <Button onClick={() => setShowLeaderboard(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
-                    <BarChart2 size={18} /> Leaderboard
-                </Button>
-            </div>
-        </Panel>
+                                <Button onClick={() => setShowLeaderboard(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
+                                    <BarChart2 size={18} /> Leaderboard
+                                </Button>
+                            </div>
+                        </Panel>
                     </div >
 
                 </div >
             )
-}
+            }
 
-{/* --- MOBILE LAYOUT --- */ }
-{
-    isMobile && (
-        <>
-            {/* Full screen Game Jar for Mobile */}
-            <div className="absolute inset-0 z-0">
-                <ErrorBoundary>
-                    <motion.div style={{ x, y }} className="relative w-full h-full">
-                        <VFXLayer />
-                        <PhysicsScene key={gameId} />
-                    </motion.div>
-                </ErrorBoundary>
-            </div>
+            {/* --- MOBILE LAYOUT --- */}
+            {
+                isMobile && (
+                    <>
+                        {/* Full screen Game Jar for Mobile */}
+                        <div className="absolute inset-0 z-0">
+                            <ErrorBoundary>
+                                <motion.div style={{ x, y }} className="relative w-full h-full">
+                                    <VFXLayer />
+                                    <PhysicsScene key={gameId} />
+                                </motion.div>
+                            </ErrorBoundary>
+                        </div>
 
-            <ErrorBoundary fallback={null}>
-                <MobileHUD
-                    onOpenShop={() => setShowShop(true)}
-                    onOpenLeaderboard={() => setShowLeaderboard(true)}
-                />
-            </ErrorBoundary>
-        </>
-    )
-}
+                        <ErrorBoundary fallback={null}>
+                            <MobileHUD
+                                onOpenShop={() => setShowShop(true)}
+                                onOpenLeaderboard={() => setShowLeaderboard(true)}
+                            />
+                        </ErrorBoundary>
+                    </>
+                )
+            }
 
 
-{/* --- MODALS & OVERLAYS --- */ }
+            {/* --- MODALS & OVERLAYS --- */}
             <AnimatePresence>
                 {isGameOver && (
                     <motion.div
