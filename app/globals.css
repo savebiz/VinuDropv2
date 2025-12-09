@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Default (Light/Ceramic) */
 :root {
@@ -16,12 +18,7 @@
   /* Cyan */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* Font Variables usually come from Next.js injection, no need to declare in root unless overridden */
 
 body {
   background: var(--background);

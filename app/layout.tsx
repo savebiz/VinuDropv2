@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { ThirdwebProvider, AutoConnect } from "thirdweb/react"; // Import AutoConnect
+import { Inter, Roboto_Mono } from "next/font/google"; // Stable fonts
+import { ThirdwebProvider, AutoConnect } from "thirdweb/react";
 import { activeChain } from "@/lib/chain";
-import { client } from "@/app/client"; // Import client
+import { client } from "@/app/client";
 import DevBanner from "@/components/ui/DevBanner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-sans", // Standard variable
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const robotoMono = Roboto_Mono({
+  variable: "--font-mono", // Standard variable
   subsets: ["latin"],
 });
 
@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${robotoMono.variable} antialiased`}
       >
         <ThirdwebProvider>
           <AutoConnect client={client} />
