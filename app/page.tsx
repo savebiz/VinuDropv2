@@ -76,7 +76,7 @@ function AppContent() {
       </header>
 
       {/* Main Game Area */}
-      <main className="flex-1 relative pt-20 overflow-hidden">
+      <main className="flex-1 relative pt-16 overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
           {theme === 'cosmic' && (
