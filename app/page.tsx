@@ -20,9 +20,9 @@ function AppContent() {
     <div className={`h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-500 ${theme === 'cosmic' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-900'}`}>
       <NetworkBanner />
       {/* Header */}
-      <header className={`fixed top-0 left-0 right-0 h-20 px-4 flex justify-between items-center z-50 backdrop-blur-md shadow-md transition-colors duration-500 ${theme === 'cosmic' ? 'bg-slate-900/80' : 'bg-white/80'}`}>
-        <div className="flex items-center gap-2">
-          <div className="relative w-10 h-10">
+      <header className={`fixed top-0 left-0 right-0 h-16 md:h-20 px-2 md:px-4 flex justify-between items-center z-50 backdrop-blur-md shadow-md transition-colors duration-500 ${theme === 'cosmic' ? 'bg-slate-900/80' : 'bg-white/80'}`}>
+        <div className="flex items-center gap-1 md:gap-2">
+          <div className="relative w-8 h-8 md:w-10 md:h-10">
             <Image
               src="/vinudrop-logo.png"
               alt="VinuDrop"
@@ -30,10 +30,10 @@ function AppContent() {
               className="object-contain drop-shadow-[0_0_10px_rgba(6,182,212,0.6)]"
             />
           </div>
-          <h1 className="text-xl font-bold tracking-tighter">VinuDrop</h1>
+          <h1 className="text-lg md:text-xl font-bold tracking-tighter">VinuDrop</h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <Button
             onClick={useGameStore((state) => state.toggleMute)}
             variant="secondary"
@@ -68,8 +68,8 @@ function AppContent() {
               className: "!bg-cyan-600 !text-white !font-bold !rounded-lg !px-3 !py-1.5 !h-auto !text-xs !min-w-0"
             }}
             detailsButton={{
-              className: `!backdrop-blur-md !border !h-8 !px-2 !text-xs !max-w-[120px] md:!max-w-none !overflow-hidden !whitespace-nowrap ${theme === 'cosmic' ? '!bg-white/10 !border-white/10 !text-white' : '!bg-black/5 !border-black/10 !text-black'}`,
-              displayBalanceToken: {} // Hide balance to make it compact? Or just default.
+              className: `!backdrop-blur-md !border !h-8 !px-2 !text-xs !max-w-[100px] md:!max-w-none !overflow-hidden !whitespace-nowrap ${theme === 'cosmic' ? '!bg-white/10 !border-white/10 !text-white' : '!bg-black/5 !border-black/10 !text-black'}`,
+              displayBalanceToken: {} // Empty object to satisfy type, relying on CSS max-height/width to compact.
             }}
           />
         </div>
