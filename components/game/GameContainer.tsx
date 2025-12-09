@@ -143,25 +143,19 @@ export default function GameContainer() {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const { width } = useGameDimensions(containerRef);
 
-    const [isMobile, setIsMobile] = useState(false);
-
-    React.useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 1024); // Toggle at 1024px for tablet/desktop split
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
+    // Layout is now handled via CSS breakpoints to prevent component unmounting/remounting
+    // which caused React hook mismatches on resize.
 
     // MAIN LAYOUT RETURN
     return (
         <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-transparent touch-none select-none flex flex-col items-center justify-center">
 
-            {/* --- DESKTOP LAYOUT (Flex Row) --- */}
-            {!isMobile && (
-                <div className="flex items-center justify-center gap-8 w-full h-full p-4">
+            {/* --- UNIFIED LAYOUT (CSS Responsive) --- */}
+            <div className="flex items-center justify-center gap-8 w-full h-full p-4 relative">
 
-                    {/* LEFT PANEL */}
-                    <div className="w-64 flex flex-col justify-center h-full max-h-[800px]">
+                {/* LEFT PANEL (Desktop Only) */}
+                <div className="hidden md:flex w-64 flex-col justify-center h-full max-h-[800px] z-20 pointer-events-none">
+                    <div className="pointer-events-auto w-full">
                         <Panel className="flex flex-col gap-4">
                             <h2 className="text-sm uppercase tracking-wider opacity-70">Score</h2>
                             <div className="text-4xl font-bold font-mono">{score.toLocaleString()}</div>
@@ -174,19 +168,23 @@ export default function GameContainer() {
                             <DailyRewardButton />
                         </Panel>
                     </div>
+                </div>
 
-                    {/* CENTRAL GAME JAR */}
-                    <div className="relative h-full max-h-[75vh] aspect-[3/4] border-2 border-dashed border-white/5 bg-black/20 rounded-xl overflow-hidden shrink-0">
-                        <ErrorBoundary>
-                            <motion.div style={{ x, y }} className="relative w-full h-full">
-                                <VFXLayer />
-                                <PhysicsScene key={gameId} />
-                            </motion.div>
-                        </ErrorBoundary>
-                    </div>
+                {/* CENTRAL GAME JAR (Responsive) */}
+                {/* On Mobile: Absolute Full Screen, z-0 */}
+                {/* On Desktop: Relative, aspect ratio, borders, z-10 */}
+                <div className="absolute inset-0 z-0 md:relative md:inset-auto md:z-10 md:h-full md:max-h-[75vh] md:aspect-[3/4] md:border-2 md:border-dashed md:border-white/5 md:bg-black/20 md:rounded-xl md:overflow-hidden md:shrink-0 transition-all duration-300">
+                    <ErrorBoundary>
+                        <motion.div style={{ x, y }} className="relative w-full h-full">
+                            <VFXLayer />
+                            <PhysicsScene key={gameId} />
+                        </motion.div>
+                    </ErrorBoundary>
+                </div>
 
-                    {/* RIGHT PANEL */}
-                    <div className="w-64 flex flex-col justify-center h-full max-h-[800px]">
+                {/* RIGHT PANEL (Desktop Only) */}
+                <div className="hidden md:flex w-64 flex-col justify-center h-full max-h-[800px] z-20 pointer-events-none">
+                    <div className="pointer-events-auto w-full">
                         <Panel className="flex flex-col gap-6">
                             <div className="flex flex-col items-center gap-4">
                                 <h2 className="text-sm uppercase tracking-wider opacity-70">Next</h2>
@@ -255,35 +253,20 @@ export default function GameContainer() {
                                 </Button>
                             </div>
                         </Panel>
-                    </div >
+                    </div>
+                </div>
 
-                </div >
-            )
-            }
+                {/* MOBILE HUD (Mobile Only) */}
+                <div className="md:hidden absolute inset-0 pointer-events-none z-50">
+                    <ErrorBoundary fallback={null}>
+                        <MobileHUD
+                            onOpenShop={() => setShowShop(true)}
+                            onOpenLeaderboard={() => setShowLeaderboard(true)}
+                        />
+                    </ErrorBoundary>
+                </div>
 
-            {/* --- MOBILE LAYOUT --- */}
-            {
-                isMobile && (
-                    <>
-                        {/* Full screen Game Jar for Mobile */}
-                        <div className="absolute inset-0 z-0">
-                            <ErrorBoundary>
-                                <motion.div style={{ x, y }} className="relative w-full h-full">
-                                    <VFXLayer />
-                                    <PhysicsScene key={gameId} />
-                                </motion.div>
-                            </ErrorBoundary>
-                        </div>
-
-                        <ErrorBoundary fallback={null}>
-                            <MobileHUD
-                                onOpenShop={() => setShowShop(true)}
-                                onOpenLeaderboard={() => setShowLeaderboard(true)}
-                            />
-                        </ErrorBoundary>
-                    </>
-                )
-            }
+            </div>
 
 
             {/* --- MODALS & OVERLAYS --- */}
