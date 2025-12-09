@@ -154,13 +154,14 @@ export default function GameContainer() {
 
     // MAIN LAYOUT RETURN
     return (
-        <div ref={containerRef} className="relative w-full h-[100dvh] overflow-hidden bg-slate-900 touch-none select-none flex flex-col">
+        <div ref={containerRef} className="relative w-full h-[100dvh] overflow-hidden bg-slate-900 touch-none select-none flex flex-col items-center justify-center">
 
-            {/* --- LAYOUT: DESKTOP (Side Panels) --- */}
+            {/* --- DESKTOP LAYOUT (Flex Row) --- */}
             {!isMobile && (
-                <div className="absolute inset-0 flex items-center justify-center gap-8 pointer-events-none z-10 px-8">
-                    {/* Left Panel */}
-                    <div className="w-64 h-full max-h-[800px] flex flex-col justify-center pointer-events-auto">
+                <div className="flex items-center justify-center gap-8 w-full h-full p-4">
+
+                    {/* LEFT PANEL */}
+                    <div className="w-64 flex flex-col justify-center h-full max-h-[800px]">
                         <Panel className="flex flex-col gap-4">
                             <h2 className="text-sm uppercase tracking-wider opacity-70">Score</h2>
                             <div className="text-4xl font-bold font-mono">{score.toLocaleString()}</div>
@@ -174,11 +175,18 @@ export default function GameContainer() {
                         </Panel>
                     </div>
 
-                    {/* Spacer for Game Jar */}
-                    <div className="w-full max-w-[450px] aspect-[9/16] shrink-0" />
+                    {/* CENTRAL GAME JAR */}
+                    <div className="relative h-full max-h-[85vh] aspect-[3/4] border-2 border-dashed border-white/5 bg-black/20 rounded-xl overflow-hidden shrink-0">
+                        <ErrorBoundary>
+                            <motion.div style={{ x, y }} className="relative w-full h-full">
+                                <VFXLayer />
+                                <PhysicsScene key={gameId} />
+                            </motion.div>
+                        </ErrorBoundary>
+                    </div>
 
-                    {/* Right Panel */}
-                    <div className="w-64 h-full max-h-[800px] flex flex-col justify-center pointer-events-auto">
+                    {/* RIGHT PANEL */}
+                    <div className="w-64 flex flex-col justify-center h-full max-h-[800px]">
                         <Panel className="flex flex-col gap-6">
                             <div className="flex flex-col items-center gap-4">
                                 <h2 className="text-sm uppercase tracking-wider opacity-70">Next</h2>
@@ -218,7 +226,6 @@ export default function GameContainer() {
                                 <InventoryButton
                                     icon={<Zap size={16} />}
                                     count={useGameStore((state) => state.shakes)}
-                                    // label="Shake"
                                     color="blue"
                                     onClick={() => {
                                         const { shakes, useShake, triggerShake } = useGameStore.getState();
@@ -231,7 +238,6 @@ export default function GameContainer() {
                                 <InventoryButton
                                     icon={<Target size={16} />}
                                     count={useGameStore((state) => state.strikes)}
-                                    // label="Laser"
                                     color="red"
                                     active={useGameStore((state) => state.laserMode)}
                                     onClick={() => {
@@ -243,32 +249,32 @@ export default function GameContainer() {
                             </div>
                         </Panel>
                     </div>
+
                 </div>
             )}
 
-            {/* --- LAYOUT: MOBILE HUD (Overlay) --- */}
+            {/* --- MOBILE LAYOUT --- */}
             {isMobile && (
-                <ErrorBoundary fallback={null}>
-                    <MobileHUD
-                        onOpenShop={() => setShowShop(true)}
-                        onOpenLeaderboard={() => setShowLeaderboard(true)}
-                    />
-                </ErrorBoundary>
+                <>
+                    {/* Full screen Game Jar for Mobile */}
+                    <div className="absolute inset-0 z-0">
+                        <ErrorBoundary>
+                            <motion.div style={{ x, y }} className="relative w-full h-full">
+                                <VFXLayer />
+                                <PhysicsScene key={gameId} />
+                            </motion.div>
+                        </ErrorBoundary>
+                    </div>
+
+                    <ErrorBoundary fallback={null}>
+                        <MobileHUD
+                            onOpenShop={() => setShowShop(true)}
+                            onOpenLeaderboard={() => setShowLeaderboard(true)}
+                        />
+                    </ErrorBoundary>
+                </>
             )}
 
-            {/* --- GAME LAYER (CENTERED) --- */}
-            <div className="absolute inset-0 flex items-center justify-center z-0">
-                {/* Container for the physics scene allows us to control max constraints */}
-                {/* Container for the physics scene allows us to control max constraints */}
-                <div className="relative w-full h-full lg:max-h-[85vh] lg:aspect-[3/4] flex items-center justify-center">
-                    <ErrorBoundary>
-                        <motion.div style={{ x, y }} className="relative w-full h-full">
-                            <VFXLayer />
-                            <PhysicsScene key={gameId} />
-                        </motion.div>
-                    </ErrorBoundary>
-                </div>
-            </div>
 
             {/* --- MODALS & OVERLAYS --- */}
             <AnimatePresence>
