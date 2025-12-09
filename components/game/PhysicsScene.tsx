@@ -249,11 +249,7 @@ const PhysicsScene = React.memo(() => {
                             });
                         }
 
-                        // Legacy VFX store effect (keep for additional juice)
-                        spawnEffect(midX, midY, ORB_LEVELS[level].color);
 
-                        // -------------------
-                        playMergeSound(level);
 
                         // Calculate Screen Coordinates for VFX
                         let screenX = midX;
