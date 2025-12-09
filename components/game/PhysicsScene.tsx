@@ -200,24 +200,38 @@ const PhysicsScene = React.memo(() => {
                         addScore(ORB_LEVELS[level].score);
                         playMergeSound(level);
 
-                        // Shake: Level 0->1 (Tiny), Level 10 (Massive)
-                        // Formula: (level + 1) * 1.5
-                        // const shakeIntensity = (level + 1) * 2;
-                        // triggerShake(shakeIntensity); // DISABLED: User requested to disable spring motion on merge
+                        // Calculate Screen Coordinates for VFX
+                        let screenX = midX;
+                        let screenY = midY;
+
+                        if (renderRef.current) {
+                            const r = renderRef.current;
+                            const b = r.bounds;
+                            // Use clientWidth to get CSS pixels (ignoring internal pixelRatio scaling)
+                            const w = r.canvas.clientWidth;
+                            const h = r.canvas.clientHeight;
+
+                            if (w && h) {
+                                const scaleX = w / (b.max.x - b.min.x);
+                                const scaleY = h / (b.max.y - b.min.y);
+                                screenX = (midX - b.min.x) * scaleX;
+                                screenY = (midY - b.min.y) * scaleY;
+                            }
+                        }
 
                         // VFX: Explosion
                         spawnEffect({
                             type: 'EXPLOSION',
-                            x: midX,
-                            y: midY,
+                            x: screenX,
+                            y: screenY,
                             color: PARTICLE_COLORS[level] || '#fff'
                         });
 
                         // VFX: Score Floater
                         spawnEffect({
                             type: 'FLOATER',
-                            x: midX,
-                            y: midY,
+                            x: screenX,
+                            y: screenY,
                             text: `+${ORB_LEVELS[level].score}`,
                             color: '#fbbf24' // Amber-400
                         });
