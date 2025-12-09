@@ -312,16 +312,20 @@ export default function GameContainer() {
                 )}
             </AnimatePresence>
 
-            <FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
+            {showLeaderboard && (
+                <FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
+            )}
 
-            <ConfirmDialog
-                isOpen={showResetConfirm}
-                onClose={() => setShowResetConfirm(false)}
-                onConfirm={handleConfirmReset}
-                title="Restart Game?"
-                description={`Are you sure? Your current score of ${score} will be submitted.`}
-                loading={resetting}
-            />
+            {showResetConfirm && (
+                <ConfirmDialog
+                    isOpen={showResetConfirm}
+                    onClose={() => setShowResetConfirm(false)}
+                    onConfirm={handleConfirmReset}
+                    title="Restart Game?"
+                    description={`Are you sure? Your current score of ${score} will be submitted.`}
+                    loading={resetting}
+                />
+            )}
 
             <AnimatePresence>
                 {showShop && (
