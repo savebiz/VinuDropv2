@@ -154,7 +154,7 @@ export default function GameContainer() {
 
     // MAIN LAYOUT RETURN
     return (
-        <div ref={containerRef} className="relative w-full h-[100dvh] overflow-hidden bg-slate-900 touch-none select-none flex flex-col items-center justify-center">
+        <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-slate-900 touch-none select-none flex flex-col items-center justify-center">
 
             {/* --- DESKTOP LAYOUT (Flex Row) --- */}
             {!isMobile && (
@@ -176,7 +176,7 @@ export default function GameContainer() {
                     </div>
 
                     {/* CENTRAL GAME JAR */}
-                    <div className="relative h-full max-h-[85vh] aspect-[3/4] border-2 border-dashed border-white/5 bg-black/20 rounded-xl overflow-hidden shrink-0">
+                    <div className="relative h-full max-h-[75vh] aspect-[3/4] border-2 border-dashed border-white/5 bg-black/20 rounded-xl overflow-hidden shrink-0">
                         <ErrorBoundary>
                             <motion.div style={{ x, y }} className="relative w-full h-full">
                                 <VFXLayer />
