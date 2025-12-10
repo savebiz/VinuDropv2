@@ -68,6 +68,9 @@ export default function GameContainer() {
     const [showLeaderboard, setShowLeaderboard] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
 
+    const { theme } = useTheme();
+    const isDark = theme === 'cosmic';
+
     // Screen Shake Hook
     const { x, y } = useScreenShake();
 
@@ -293,16 +296,16 @@ export default function GameContainer() {
                         exit={{ opacity: 0 }}
                         className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md"
                     >
-                        <Panel className="max-w-xs text-center p-8 border-white/20 shadow-2xl">
-                            <h2 className="text-4xl font-bold text-white mb-2">Game Over</h2>
-                            <p className="text-xl text-cyan-300 mb-6">Score: {score}</p>
+                        <Panel className={`max-w-xs text-center p-8 shadow-xl border ${isDark ? 'border-white/20' : 'border-slate-200'}`}>
+                            <h2 className={`text-4xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Game Over</h2>
+                            <p className={`text-xl mb-6 font-mono font-bold ${isDark ? 'text-cyan-300' : 'text-cyan-600'}`}>Score: {score}</p>
                             <Button onClick={resetGame} variant="primary" className="w-full mb-4">
                                 Try Again
                             </Button>
 
-                            <div className="pt-4 border-t border-white/10">
+                            <div className={`pt-4 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                                 <Button onClick={() => setShowShop(true)} variant="secondary" className="w-full flex items-center justify-center gap-2 text-sm">
-                                    <HeartPulse size={16} className="text-green-400" /> Use Revive
+                                    <HeartPulse size={16} className={isDark ? "text-green-400" : "text-green-600"} /> Use Revive
                                 </Button>
                             </div>
                         </Panel>
