@@ -238,7 +238,7 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
                                     ? 'bg-black/50 border-white/10 text-white'
                                     : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
                                 }`}
-                            placeholder="Wallet Address or Username..."
+                            placeholder="Wallet or Username"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -246,9 +246,9 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
                         <Button
                             onClick={handleSearch}
                             disabled={searchLoading}
-                            className="bg-cyan-600 hover:bg-cyan-500 text-white text-sm px-6 font-bold"
+                            className="bg-cyan-600 hover:bg-cyan-500 text-white text-sm px-4 font-bold min-w-[80px]"
                         >
-                            {searchLoading ? <RefreshCw className="animate-spin" size={16} /> : "Check Rank"}
+                            {searchLoading ? <RefreshCw className="animate-spin" size={16} /> : "Search"}
                         </Button>
                     </div>
 
