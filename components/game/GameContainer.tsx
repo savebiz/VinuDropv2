@@ -318,6 +318,39 @@ export default function GameContainer() {
                 <FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
             )}
 
+            {/* --- MISSING MODALS RESTORED --- */}
+            {showResetConfirm && (
+                <ConfirmDialog
+                    isOpen={showResetConfirm}
+                    title="Restart Game?"
+                    description="Current progress will be lost."
+                    onConfirm={handleConfirmReset}
+                    onCancel={() => setShowResetConfirm(false)}
+                    confirmText="Restart"
+                    cancelText="Cancel"
+                    isDestructive
+                />
+            )}
+
+            <AnimatePresence>
+                {showShop && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                    >
+                        <div className="w-full max-w-md relative">
+                            {/* Backdrop click to close */}
+                            <div className="absolute inset-0" onClick={() => setShowShop(false)} />
+                            <div className="relative z-10">
+                                <ShopPanel onClose={() => setShowShop(false)} />
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
         </div >
     );
 };
