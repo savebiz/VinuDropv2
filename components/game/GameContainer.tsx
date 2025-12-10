@@ -325,10 +325,8 @@ export default function GameContainer() {
                     title="Restart Game?"
                     description="Current progress will be lost."
                     onConfirm={handleConfirmReset}
-                    onCancel={() => setShowResetConfirm(false)}
-                    confirmText="Restart"
-                    cancelText="Cancel"
-                    isDestructive
+                    onClose={() => setShowResetConfirm(false)}
+                    loading={resetting}
                 />
             )}
 
