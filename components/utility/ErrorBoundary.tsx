@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         className="px-4 py-2 bg-white text-black text-xs font-bold rounded hover:bg-gray-200"
                         onClick={() => this.setState({ hasError: false, error: null })}
                     >
-                        Try Again
+                        {this.state.error?.message?.includes('Loading chunk') ? 'Retry Connection' : 'Try Again'}
                     </button>
                 </div>
             );
