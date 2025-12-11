@@ -32,6 +32,15 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
     const [topScores, setTopScores] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(false);
 
+    // Responsive Placeholder Logic
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
     // Search
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResult, setSearchResult] = useState<any | null>(null);
@@ -186,7 +195,7 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
                                             player.rank === 3 ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-white ring-2 ring-amber-600/50' :
                                                 isDark ? 'bg-black/30 text-white/70 border border-white/10' : 'bg-white text-slate-700 border border-slate-300'
                                         }`}>
-                                        {player.rank <= 3 && <Crown size={14} className="absolute -top-2" />}
+                                        {player.rank <= 3 && <Crown size={14} className={`absolute -top-2 ${isDark ? 'text-white' : 'text-black'}`} />}
                                         {player.rank}
                                     </div>
 
@@ -238,7 +247,7 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
                                     ? 'bg-black/50 border-white/10 text-white'
                                     : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
                                 }`}
-                            placeholder="Wallet or Username"
+                            placeholder={isMobile ? "Wallet Add. or Username" : "Wallet Address or Username"}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -293,7 +302,7 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
                                             High Score
                                         </div>
                                         <div className={`text-2xl font-mono font-bold ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
-                                            {searchResult.max_score.toLocaleString()}
+                                            {searchResult.max_score?.toLocaleString() || "0"}
                                         </div>
                                     </div>
                                 </div>
@@ -304,7 +313,7 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
                                             : 'text-yellow-700 bg-yellow-100'
                                         }`}
                                     >
-                                        Need <b>{searchResult.points_to_top_30.toLocaleString()}</b> more points to hit Top 30!
+                                        Need <b>{searchResult.points_to_top_30?.toLocaleString() || "0"}</b> more points to hit Top 30!
                                     </div>
                                 ) : (
                                     <div className={`mt-3 text-center text-xs rounded-full py-1 

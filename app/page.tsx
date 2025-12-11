@@ -15,6 +15,7 @@ import { ErrorBoundary } from '@/components/utility/ErrorBoundary';
 
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
+  const setIsWalletConnecting = useGameStore((state) => state.setIsWalletConnecting);
 
   return (
     <div className={`h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-500 ${theme === 'cosmic' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-900'}`}>
@@ -54,24 +55,26 @@ function AppContent() {
             {theme === 'cosmic' ? <Sun size={16} /> : <Moon size={16} />}
           </Button>
 
-          <ConnectButton
-            client={client}
-            chain={activeChain}
-            theme={theme === "cosmic" ? darkTheme({
-              colors: {
-                modalBg: "#000000",
-                borderColor: "#333333",
-              }
-            }) : lightTheme()}
-            connectButton={{
-              label: "Connect",
-              className: "!bg-cyan-600 !text-white !font-bold !rounded-lg !px-3 !py-1.5 !h-auto !text-xs !min-w-0"
-            }}
-            detailsButton={{
-              className: `!backdrop-blur-md !border !h-8 !px-2 !text-xs !max-w-[100px] md:!max-w-none !overflow-hidden !whitespace-nowrap ${theme === 'cosmic' ? '!bg-white/10 !border-white/10 !text-white' : '!bg-black/5 !border-black/10 !text-black'}`,
-              displayBalanceToken: {} // Empty object to satisfy type, relying on CSS max-height/width to compact.
-            }}
-          />
+          <div onClickCapture={() => setIsWalletConnecting(true)}>
+            <ConnectButton
+              client={client}
+              chain={activeChain}
+              theme={theme === "cosmic" ? darkTheme({
+                colors: {
+                  modalBg: "#000000",
+                  borderColor: "#333333",
+                }
+              }) : lightTheme()}
+              connectButton={{
+                label: "Connect",
+                className: "!bg-cyan-600 !text-white !font-bold !rounded-lg !px-3 !py-1.5 !h-auto !text-xs !min-w-0"
+              }}
+              detailsButton={{
+                className: `!backdrop-blur-md !border !h-auto !py-2 !px-3 !text-xs !max-w-[120px] md:!max-w-none !overflow-hidden !whitespace-nowrap ${theme === 'cosmic' ? '!bg-white/10 !border-white/10 !text-white' : '!bg-black/5 !border-black/10 !text-black'}`,
+                displayBalanceToken: {} // Empty object to satisfy type, relying on CSS max-height/width to compact.
+              }}
+            />
+          </div>
         </div>
       </header>
 

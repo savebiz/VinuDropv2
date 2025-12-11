@@ -103,7 +103,7 @@ export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) 
                 {/* Glow */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-cyan-500/20 rounded-full blur-xl group-hover:bg-cyan-400/30 transition-all duration-500" />
 
-                <div className={`w-14 h-14 backdrop-blur-md rounded-full border-4 flex items-center justify-center shadow-[0_0_25px_rgba(6,182,212,0.4)] relative ring-1 transition-colors
+                <div className={`w-16 h-16 backdrop-blur-md rounded-full border-4 flex items-center justify-center shadow-[0_0_25px_rgba(6,182,212,0.4)] relative ring-1 transition-colors
                     ${isDark
                         ? 'bg-slate-900/80 border-slate-900 ring-white/10'
                         : 'bg-white/80 border-white ring-slate-200'

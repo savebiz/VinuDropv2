@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/Button";
 import { ORB_LEVELS } from "@/lib/constants";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { DailyRewardButton } from "@/components/game/DailyRewardButton";
-import { RefreshCw, ShoppingBag, BarChart2, Zap, Target, HeartPulse } from "lucide-react";
+import { RefreshCw, ShoppingBag, BarChart2, Zap, Target, HeartPulse, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { HowToPlayModal } from "./HowToPlayModal";
 
 import ProfileModal from "@/components/ui/ProfileModal";
 import { useHighScore } from "@/hooks/useHighScore";
@@ -67,6 +68,20 @@ export default function GameContainer() {
     const [showShop, setShowShop] = useState(false);
     const [showLeaderboard, setShowLeaderboard] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
+    const [showHowToPlay, setShowHowToPlay] = useState(false);
+
+    // FTUE Check
+    React.useEffect(() => {
+        const hasSeen = localStorage.getItem('hasSeenHowToPlay_v2'); // v2 to force show again if logic changed
+        if (!hasSeen) {
+            setShowHowToPlay(true);
+        }
+    }, []);
+
+    const handleCloseHowToPlay = () => {
+        localStorage.setItem('hasSeenHowToPlay_v2', 'true');
+        setShowHowToPlay(false);
+    };
 
     const { theme } = useTheme();
     const isDark = theme === 'cosmic';
@@ -122,7 +137,8 @@ export default function GameContainer() {
     // Warn on Refresh/Close if game is active
     React.useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (score > 0 && !isGameOver) {
+            const { isWalletConnecting } = useGameStore.getState();
+            if (score > 0 && !isGameOver && !isWalletConnecting) {
                 e.preventDefault();
                 e.returnValue = ''; // Trigger browser default warning
             }
@@ -179,15 +195,21 @@ export default function GameContainer() {
                     "
                 >
                     {/* --- VIBE: Aurora Background (Mobile Only) --- */}
+                    {/* --- VIBE: Aurora Background (Mobile Only) --- */}
                     <div className="md:hidden absolute inset-0 pointer-events-none z-0 overflow-hidden">
-                        <div className="absolute -top-[20%] -left-[20%] w-[140%] h-[60%] bg-purple-900/30 blur-[80px] rounded-full animate-pulse" />
-                        <div className="absolute top-[40%] -right-[20%] w-[140%] h-[60%] bg-cyan-900/20 blur-[80px] rounded-full animate-pulse delay-1000" />
+                        <div className={`absolute -top-[20%] -left-[20%] w-[140%] h-[60%] blur-[80px] rounded-full animate-pulse transition-colors duration-1000
+                            ${isDark ? 'bg-purple-900/30' : 'bg-rose-300/40'}`}
+                        />
+                        <div className={`absolute top-[40%] -right-[20%] w-[140%] h-[60%] blur-[80px] rounded-full animate-pulse delay-1000 transition-colors duration-1000
+                            ${isDark ? 'bg-cyan-900/20' : 'bg-blue-200/40'}`}
+                        />
                     </div>
                     {/* Top HUD (Relative Flex Item) */}
                     <div className="md:hidden w-full shrink-0 z-50">
                         <MobileTopHUD
                             onOpenLeaderboard={() => setShowLeaderboard(true)}
                             onOpenProfile={() => setShowProfile(true)}
+                            onOpenHowToPlay={() => setShowHowToPlay(true)}
                         />
                     </div>
 
@@ -279,6 +301,9 @@ export default function GameContainer() {
                                 <Button onClick={() => setShowLeaderboard(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
                                     <BarChart2 size={18} /> Leaderboard
                                 </Button>
+                                <Button onClick={() => setShowHowToPlay(true)} variant="secondary" className="w-full flex items-center justify-center gap-2">
+                                    <HelpCircle size={18} /> How to Play
+                                </Button>
                             </div>
                         </Panel>
                     </div>
@@ -320,6 +345,8 @@ export default function GameContainer() {
             {showLeaderboard && (
                 <FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
             )}
+
+            <HowToPlayModal isOpen={showHowToPlay} onClose={handleCloseHowToPlay} />
 
             {/* --- MISSING MODALS RESTORED --- */}
             {showResetConfirm && (

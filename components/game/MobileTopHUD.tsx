@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGameStore } from '@/store/gameStore';
-import { BarChart2, Menu, RotateCw, User, X } from 'lucide-react';
+import { BarChart2, Menu, RotateCw, User, X, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DailyRewardButton } from '@/components/game/DailyRewardButton';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -9,9 +9,10 @@ import { useTheme } from '@/components/ui/ThemeProvider';
 interface MobileTopHUDProps {
     onOpenLeaderboard: () => void;
     onOpenProfile: () => void;
+    onOpenHowToPlay: () => void;
 }
 
-export const MobileTopHUD = ({ onOpenLeaderboard, onOpenProfile }: MobileTopHUDProps) => {
+export const MobileTopHUD = ({ onOpenLeaderboard, onOpenProfile, onOpenHowToPlay }: MobileTopHUDProps) => {
     const { score, resetGame } = useGameStore();
     const [showMenu, setShowMenu] = useState(false);
     const { theme } = useTheme();
@@ -132,6 +133,17 @@ export const MobileTopHUD = ({ onOpenLeaderboard, onOpenProfile }: MobileTopHUDP
                                 >
                                     <BarChart2 size={16} className={isDark ? "text-yellow-400" : "text-yellow-600"} />
                                     Leaderboard
+                                </button>
+                                <button
+                                    onClick={() => { onOpenHowToPlay(); setShowMenu(false); }}
+                                    className={`flex items-center gap-3 w-full p-2 rounded-lg text-sm font-bold transition-colors text-left
+                                        ${isDark
+                                            ? 'hover:bg-white/10 text-white'
+                                            : 'hover:bg-slate-100 text-slate-800'
+                                        }`}
+                                >
+                                    <HelpCircle size={16} className={isDark ? "text-cyan-400" : "text-cyan-600"} />
+                                    How to Play
                                 </button>
                             </motion.div>
                         )}

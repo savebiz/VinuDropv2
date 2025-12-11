@@ -1,15 +1,15 @@
 export const ORB_LEVELS = [
-    { level: 0, name: "Cherry", radius: 20, color: "#FF0000", score: 10 },
-    { level: 1, name: "Strawberry", radius: 30, color: "#FF4400", score: 20 },
-    { level: 2, name: "Grape", radius: 40, color: "#8800FF", score: 30 },
-    { level: 3, name: "Dekopon", radius: 50, color: "#FFAA00", score: 40 },
-    { level: 4, name: "Orange", radius: 60, color: "#FF8800", score: 50 },
-    { level: 5, name: "Apple", radius: 70, color: "#FF2222", score: 60 },
-    { level: 6, name: "Pear", radius: 80, color: "#FFFF00", score: 70 },
-    { level: 7, name: "Peach", radius: 90, color: "#FFCCCC", score: 80 },
-    { level: 8, name: "Pineapple", radius: 100, color: "#FFFF88", score: 90 },
-    { level: 9, name: "Melon", radius: 110, color: "#88FF88", score: 100 },
-    { level: 10, name: "Vinu Moon", radius: 120, color: "#00FFFF", score: 110 },
+    { level: 0, name: "Cherry", radius: 20, color: "#FF2A2A", score: 10 },        // Red -> Vivid Red
+    { level: 1, name: "Strawberry", radius: 30, color: "#FF007F", score: 20 },    // Red-Orange -> Neon Rose
+    { level: 2, name: "Grape", radius: 40, color: "#9D00FF", score: 30 },         // Purple -> Electric Violet
+    { level: 3, name: "Dekopon", radius: 50, color: "#FFD700", score: 40 },      // Amber -> Gold
+    { level: 4, name: "Orange", radius: 60, color: "#FF6600", score: 50 },        // Orange -> Vibrant Orange
+    { level: 5, name: "Apple", radius: 70, color: "#32CD32", score: 60 },         // Red -> Lime Green (Major distinction fix)
+    { level: 6, name: "Pear", radius: 80, color: "#B4FF00", score: 70 },          // Yellow -> Neon Chartreuse
+    { level: 7, name: "Peach", radius: 90, color: "#FF99CC", score: 80 },         // Pale Pink -> Soft Pink
+    { level: 8, name: "Pineapple", radius: 100, color: "#FFFF33", score: 90 },    // Pale Yellow -> Bright Yellow
+    { level: 9, name: "Melon", radius: 110, color: "#00FFCC", score: 100 },       // Pale Green -> Turquoise
+    { level: 10, name: "Vinu Moon", radius: 120, color: "#E0FFFF", score: 110 },  // Cyan -> Cyan Glow
 ];
 
 export const GAME_WIDTH = 600;

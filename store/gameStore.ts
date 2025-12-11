@@ -21,6 +21,10 @@ interface GameState {
     isMuted: boolean;
     toggleMute: () => void;
 
+    // Wallet State
+    isWalletConnecting: boolean;
+    setIsWalletConnecting: (isConnecting: boolean) => void;
+
     // Inventory
     shakes: number;
     strikes: number;
@@ -99,6 +103,9 @@ export const useGameStore = create<GameState>()(
             cursorMode: 'default',
             isMuted: false,
             toggleMute: () => set((state) => ({ isMuted: !state.isMuted })),
+
+            isWalletConnecting: false,
+            setIsWalletConnecting: (isConnecting) => set({ isWalletConnecting: isConnecting }),
 
             // Freebies Defaults
             freeShakes: 1,
