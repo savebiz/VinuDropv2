@@ -343,7 +343,9 @@ export default function GameContainer() {
             )}
 
             {showLeaderboard && (
-                <FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
+                <ErrorBoundary>
+                    <FullLeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} />
+                </ErrorBoundary>
             )}
 
             <HowToPlayModal isOpen={showHowToPlay} onClose={handleCloseHowToPlay} />
