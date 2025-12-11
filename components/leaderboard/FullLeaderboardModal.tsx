@@ -170,7 +170,7 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
                             ${isDark ? 'text-white/50' : 'text-slate-400'}`}
                         >
                             <User className="w-8 h-8 opacity-20" />
-                            No scores yet for this period.
+                            No scores yet. Please check your internet connection.
                         </div>
                     ) : (
                         topScores.map((player) => (

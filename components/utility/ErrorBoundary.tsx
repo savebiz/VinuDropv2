@@ -36,9 +36,13 @@ export class ErrorBoundary extends Component<Props, State> {
             return (
                 <div className="flex flex-col items-center justify-center p-4 bg-red-900/80 rounded-lg text-white text-center">
                     <AlertTriangle className="mb-2 text-yellow-500" size={32} />
-                    <h2 className="text-lg font-bold mb-1">Something went wrong</h2>
+                    <h2 className="text-lg font-bold mb-1">
+                        {this.state.error?.message?.includes('Loading chunk') ? 'Connection Error' : 'Something went wrong'}
+                    </h2>
                     <p className="text-xs opacity-70 font-mono mb-2 max-w-[200px] break-words">
-                        {this.state.error?.message || 'Unknown error'}
+                        {this.state.error?.message?.includes('Loading chunk')
+                            ? "You are not connected to the internet. Please check your connection and try again."
+                            : (this.state.error?.message || 'Unknown error')}
                     </p>
                     <button
                         className="px-4 py-2 bg-white text-black text-xs font-bold rounded hover:bg-gray-200"

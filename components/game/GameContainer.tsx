@@ -372,7 +372,9 @@ export default function GameContainer() {
                             {/* Backdrop click to close */}
                             <div className="absolute inset-0" onClick={() => setShowShop(false)} />
                             <div className="relative z-10">
-                                <ShopPanel onClose={() => setShowShop(false)} />
+                                <ErrorBoundary>
+                                    <ShopPanel onClose={() => setShowShop(false)} />
+                                </ErrorBoundary>
                             </div>
                         </div>
                     </motion.div>
