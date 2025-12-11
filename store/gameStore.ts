@@ -1,12 +1,23 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface SavedOrb {
     x: number;
     y: number;
     radius: number;
-    level: number; // Store the actual level index
+    level: number;
 }
+
+export interface UserInventory {
+    freeShakes: number;
+    paidShakes: number;
+    freeStrikes: number;
+    paidStrikes: number;
+    hasClaimedWelcomePack: boolean;
+}
+
+const MAX_FREE_SHAKES = 12;
+const MAX_FREE_STRIKES = 9;
 
 interface GameState {
     score: number;
@@ -15,7 +26,7 @@ interface GameState {
     isGameOver: boolean;
     nextOrbLevel: number;
     gameId: string;
-    startTime: number; // For anti-cheat legacy validation
+    startTime: number;
 
     // Audio
     isMuted: boolean;
@@ -25,22 +36,10 @@ interface GameState {
     isWalletConnecting: boolean;
     setIsWalletConnecting: (isConnecting: boolean) => void;
 
-    // Inventory
-    shakes: number;
-    strikes: number;
-    reviveTrigger: number;
-
-    // Daily Freebies
-    freeShakes: number;
-    freeStrikes: number;
-    lastFreebieResetDate: string | null;
-
-    // Tracks claim date per wallet address: { '0x123...': '2023-10-27' }
-    lastDailyRewardClaimDate: Record<string, string>;
-
-    // Strict Persistence
-    savedOrbs: SavedOrb[];
-    setSavedOrbs: (orbs: SavedOrb[]) => void;
+    // Inventory System
+    walletInventory: Record<string, UserInventory>;
+    legacyShakes: number;  // For migration
+    legacyStrikes: number; // For migration
 
     // Actions
     setScore: (score: number) => void;
@@ -49,73 +48,88 @@ interface GameState {
     setUsername: (name: string) => void;
     setGameOver: (isOver: boolean) => void;
     setNextOrbLevel: (level: number) => void;
-    resetGame: () => void;
+    resetGame: () => void; // Normal reset
+    hardResetGame: () => void; // Session expire reset
 
     // Inventory Actions
-    addShakes: (amount: number) => void;
-    useShake: () => boolean;
-    addStrikes: (amount: number) => void;
-    useStrike: () => boolean;
-    triggerRevive: () => void;
+    addShakes: (amount: number, type: 'free' | 'paid', wallet?: string) => void;
+    useShake: (wallet?: string) => boolean;
+    addStrikes: (amount: number, type: 'free' | 'paid', wallet?: string) => void;
+    useStrike: (wallet?: string) => boolean;
+    getInventory: (wallet?: string) => { totalShakes: number, totalStrikes: number, freeShakes: number, freeStrikes: number, hasClaimedWelcomePack: boolean };
 
-    // Freebie Actions
-    checkDailyFreebieReset: () => void;
-    consumeFreeShake: () => boolean;
-    consumeFreeStrike: () => boolean;
+    // Migration
+    claimLegacyInventory: (wallet: string) => void;
 
-    // Updated to accept address
     setLastDailyRewardClaimDate: (address: string, date: string) => void;
+    lastDailyRewardClaimDate: Record<string, string>;
 
-    // Shake
+    triggerRevive: () => void;
+    reviveTrigger: number;
+
+    // Shake Mechanics
     shakeTrigger: number;
-    shakeIntensity: number; // Add intensity
+    shakeIntensity: number;
     triggerShake: (intensity?: number) => void;
 
-    // Laser
+    // Laser Mechanics
     laserMode: boolean;
     toggleLaserMode: () => void;
     cursorMode?: 'default' | 'crosshair';
 
-    // Hydration state
+    // Hydration
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
+
+    // Persistence
+    savedOrbs: SavedOrb[];
+    setSavedOrbs: (orbs: SavedOrb[]) => void;
 }
+
+const DEFAULT_INVENTORY: UserInventory = {
+    freeShakes: 0,
+    paidShakes: 0,
+    freeStrikes: 0,
+    paidStrikes: 0,
+    hasClaimedWelcomePack: false
+};
 
 export const useGameStore = create<GameState>()(
     persist(
         (set, get) => ({
-            // ... defaults ...
             score: 0,
             highScore: 0,
             username: null,
             isGameOver: false,
             nextOrbLevel: 0,
             gameId: crypto.randomUUID(),
-
-            shakes: 0,
-            strikes: 0,
-            reviveTrigger: 0,
-            shakeTrigger: 0,
-            shakeIntensity: 0,
-            savedOrbs: [],
             startTime: Date.now(),
-            laserMode: false,
-            cursorMode: 'default',
+
             isMuted: false,
             toggleMute: () => set((state) => ({ isMuted: !state.isMuted })),
 
             isWalletConnecting: false,
             setIsWalletConnecting: (isConnecting) => set({ isWalletConnecting: isConnecting }),
 
-            // Freebies Defaults
-            freeShakes: 1,
-            freeStrikes: 1,
-            lastFreebieResetDate: null,
-            lastDailyRewardClaimDate: {}, // Initialize as empty object
+            walletInventory: {},
+            legacyShakes: 0,
+            legacyStrikes: 0,
+            lastDailyRewardClaimDate: {},
 
-            setSavedOrbs: (orbs: SavedOrb[]) => set({ savedOrbs: orbs }),
+            reviveTrigger: 0,
+            triggerRevive: () => set({ reviveTrigger: Date.now() }),
 
-            // ... actions ...
+            shakeTrigger: 0,
+            shakeIntensity: 0,
+            triggerShake: (intensity = 1) => set({ shakeTrigger: Date.now(), shakeIntensity: intensity }),
+
+            laserMode: false,
+            cursorMode: 'default',
+            toggleLaserMode: () => set((state) => ({ laserMode: !state.laserMode, cursorMode: !state.laserMode ? 'crosshair' : 'default' })),
+
+            savedOrbs: [],
+            setSavedOrbs: (orbs) => set({ savedOrbs: orbs }),
+
             setScore: (score) => set((state) => ({
                 score,
                 highScore: Math.max(Number(state.highScore) || 0, score)
@@ -127,100 +141,222 @@ export const useGameStore = create<GameState>()(
                     highScore: Math.max(Number(state.highScore) || 0, newScore)
                 };
             }),
-            setHighScore: (score: number) => set((state) => ({
+            setHighScore: (score) => set((state) => ({
                 highScore: Math.max(Number(state.highScore) || 0, score)
             })),
-            setUsername: (name: string) => set({ username: name }),
+            setUsername: (name) => set({ username: name }),
             setGameOver: (isOver) => set({ isGameOver: isOver }),
             setNextOrbLevel: (level) => set({ nextOrbLevel: level }),
+
             resetGame: () => set({
                 score: 0,
                 isGameOver: false,
                 nextOrbLevel: Math.floor(Math.random() * 5),
                 gameId: crypto.randomUUID(),
-                savedOrbs: [], // Clear persistence on reset
+                savedOrbs: [],
+                // NOTE: startTime is NOT reset here to track session length accurately across retries?
+                // Actually user requested 48h session reset. 
+                // "Clean Game Jar every other day... to prevent continuous play."
+                // So regular reset should NOT reset startTime if we track "Session" vs "Game Round".
+                // But for now, let's keep startTime reset on Game Over retry to be simple, 
+                // UNLESS the 48h check is against a persistent "SessionStart". 
+                // Let's assume startTime = Game Round Start. 
+                // The 48h check implies a "season" or "session" concept.
+                // For simplicity, let's treat startTime as "Round Start". 
+                // If the user wants to limit "Session", we might need a separate timestamp.
+                // However, the prompt says "prevent continuous play after two days". 
+                // This implies a long-running game. 
+                // So if I play for 48h straight, I get kicked.
                 startTime: Date.now(),
             }),
 
-            addShakes: (amount) => set((state) => ({ shakes: state.shakes + amount })),
-            useShake: () => {
-                const { shakes } = get();
-                if (shakes > 0) {
-                    set({ shakes: shakes - 1 });
-                    return true;
-                }
-                return false;
-            },
-            addStrikes: (amount) => set((state) => ({ strikes: state.strikes + amount })),
-            useStrike: () => {
-                const { strikes } = get();
-                if (strikes > 0) {
-                    set({ strikes: strikes - 1 });
-                    return true;
-                }
-                return false;
-            },
-            triggerRevive: () => set({ reviveTrigger: Date.now() }),
+            hardResetGame: () => set({
+                score: 0,
+                isGameOver: true, // Force game over screen
+                nextOrbLevel: Math.floor(Math.random() * 5),
+                gameId: crypto.randomUUID(),
+                savedOrbs: [],
+                startTime: Date.now(),
+            }),
 
-            // Freebie Logic
-            checkDailyFreebieReset: () => {
-                const today = new Date().toISOString().split('T')[0];
-                const { lastFreebieResetDate } = get();
-
-                if (lastFreebieResetDate !== today) {
-                    set({
-                        freeShakes: 1,
-                        freeStrikes: 1,
-                        lastFreebieResetDate: today
-                    });
+            getInventory: (wallet) => {
+                const { walletInventory, legacyShakes, legacyStrikes } = get();
+                // If wallet present, return wallet inventory
+                if (wallet && walletInventory[wallet]) {
+                    const inv = walletInventory[wallet];
+                    return {
+                        totalShakes: inv.freeShakes + inv.paidShakes,
+                        totalStrikes: inv.freeStrikes + inv.paidStrikes,
+                        freeShakes: inv.freeShakes,
+                        freeStrikes: inv.freeStrikes,
+                        hasClaimedWelcomePack: inv.hasClaimedWelcomePack
+                    };
                 }
-            },
-            consumeFreeShake: () => {
-                const { freeShakes } = get();
-                if (freeShakes > 0) {
-                    set({ freeShakes: freeShakes - 1 });
-                    return true;
-                }
-                return false;
-            },
-            consumeFreeStrike: () => {
-                const { freeStrikes } = get();
-                if (freeStrikes > 0) {
-                    set({ freeStrikes: freeStrikes - 1 });
-                    return true;
-                }
-                return false;
+                // Fallback to legacy for guests or new wallets
+                return {
+                    totalShakes: legacyShakes,
+                    totalStrikes: legacyStrikes,
+                    freeShakes: 0,
+                    freeStrikes: 0,
+                    hasClaimedWelcomePack: false
+                };
             },
 
-            setLastDailyRewardClaimDate: (address: string, date: string) => set((state) => ({
-                lastDailyRewardClaimDate: {
-                    ...state.lastDailyRewardClaimDate,
-                    [address]: date
+            addShakes: (amount, type, wallet) => set((state) => {
+                if (!wallet) return { legacyShakes: state.legacyShakes + amount };
+
+                const currentInv = state.walletInventory[wallet] || { ...DEFAULT_INVENTORY };
+                let newInv = { ...currentInv };
+
+                if (type === 'paid') {
+                    newInv.paidShakes += amount;
+                } else {
+                    // Free cap check
+                    if (newInv.freeShakes + amount <= MAX_FREE_SHAKES) {
+                        newInv.freeShakes += amount;
+                    } else if (newInv.freeShakes < MAX_FREE_SHAKES) {
+                        // Fill up to cap
+                        newInv.freeShakes = MAX_FREE_SHAKES;
+                    }
+                    // If full, do nothing (or we could handle partial adds, but '1' is usual)
                 }
+
+                // Mark welcome pack if this was a free claim (optional validation, mostly handled by button)
+                if (type === 'free' && amount >= 5) { // Assuming welcome pack is 5
+                    newInv.hasClaimedWelcomePack = true;
+                }
+
+                return {
+                    walletInventory: { ...state.walletInventory, [wallet]: newInv }
+                };
+            }),
+
+            addStrikes: (amount, type, wallet) => set((state) => {
+                if (!wallet) return { legacyStrikes: state.legacyStrikes + amount };
+
+                const currentInv = state.walletInventory[wallet] || { ...DEFAULT_INVENTORY };
+                let newInv = { ...currentInv };
+
+                if (type === 'paid') {
+                    newInv.paidStrikes += amount;
+                } else {
+                    if (newInv.freeStrikes + amount <= MAX_FREE_STRIKES) {
+                        newInv.freeStrikes += amount;
+                    } else if (newInv.freeStrikes < MAX_FREE_STRIKES) {
+                        newInv.freeStrikes = MAX_FREE_STRIKES;
+                    }
+                }
+
+                return {
+                    walletInventory: { ...state.walletInventory, [wallet]: newInv }
+                };
+            }),
+
+            useShake: (wallet) => {
+                const state = get();
+                if (wallet) {
+                    const inv = state.walletInventory[wallet];
+                    if (!inv) return false;
+
+                    if (inv.freeShakes > 0) {
+                        set(s => ({ walletInventory: { ...s.walletInventory, [wallet]: { ...inv, freeShakes: inv.freeShakes - 1 } } }));
+                        return true;
+                    } else if (inv.paidShakes > 0) {
+                        set(s => ({ walletInventory: { ...s.walletInventory, [wallet]: { ...inv, paidShakes: inv.paidShakes - 1 } } }));
+                        return true;
+                    }
+                    return false;
+                } else {
+                    // Legacy/Guest
+                    if (state.legacyShakes > 0) {
+                        set(s => ({ legacyShakes: s.legacyShakes - 1 }));
+                        return true;
+                    }
+                    return false;
+                }
+            },
+
+            useStrike: (wallet) => {
+                const state = get();
+                if (wallet) {
+                    const inv = state.walletInventory[wallet];
+                    if (!inv) return false;
+
+                    if (inv.freeStrikes > 0) {
+                        set(s => ({ walletInventory: { ...s.walletInventory, [wallet]: { ...inv, freeStrikes: inv.freeStrikes - 1 } } }));
+                        return true;
+                    } else if (inv.paidStrikes > 0) {
+                        set(s => ({ walletInventory: { ...s.walletInventory, [wallet]: { ...inv, paidStrikes: inv.paidStrikes - 1 } } }));
+                        return true;
+                    }
+                    return false;
+                } else {
+                    if (state.legacyStrikes > 0) {
+                        set(s => ({ legacyStrikes: s.legacyStrikes - 1 }));
+                        return true;
+                    }
+                    return false;
+                }
+            },
+
+            claimLegacyInventory: (wallet) => set((state) => {
+                if (state.legacyShakes > 0 || state.legacyStrikes > 0) {
+                    const currentInv = state.walletInventory[wallet] || { ...DEFAULT_INVENTORY };
+                    // Move legacy items to PAID stack to preserve them fully without caps
+                    const newInv = {
+                        ...currentInv,
+                        paidShakes: currentInv.paidShakes + state.legacyShakes,
+                        paidStrikes: currentInv.paidStrikes + state.legacyStrikes
+                    };
+                    return {
+                        walletInventory: { ...state.walletInventory, [wallet]: newInv },
+                        legacyShakes: 0,
+                        legacyStrikes: 0
+                    };
+                }
+                return {};
+            }),
+
+            setLastDailyRewardClaimDate: (address, date) => set((state) => ({
+                lastDailyRewardClaimDate: { ...state.lastDailyRewardClaimDate, [address]: date }
             })),
-
-            triggerShake: (intensity = 1) => set({ shakeTrigger: Date.now(), shakeIntensity: intensity }),
-
-            toggleLaserMode: () => set((state) => ({ laserMode: !state.laserMode, cursorMode: !state.laserMode ? 'crosshair' : 'default' })),
 
             _hasHydrated: false,
             setHasHydrated: (state) => set({ _hasHydrated: state }),
         }),
         {
-            name: 'vinu-drop-storage', // unique name
+            name: 'vinu-drop-storage',
+            storage: createJSONStorage(() => localStorage),
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);
             },
+            // Migration logic for old persistence versions (if any)
+            // Since we changed interface, we rely on 'partialize' or manual handling.
+            // Zustand persist merges state. Old 'shakes' (number) will be merged.
+            // But 'shakes' is no longer in GameState interface! 
+            // So typescript is fine, but runtime might have 'shakes' property.
+            // We use 'migrate' to map old state.
+            version: 1,
+            migrate: (persistedState: any, version: number) => {
+                if (version === 0) {
+                    // Migration from v0 (implicit)
+                    // If user has 'shakes' or 'strikes' in localstorage, move to legacyShakes
+                    return {
+                        ...persistedState,
+                        legacyShakes: persistedState.shakes || 0,
+                        legacyStrikes: persistedState.strikes || 0,
+                        walletInventory: persistedState.walletInventory || {}
+                    };
+                }
+                return persistedState as GameState;
+            },
             partialize: (state) => ({
-                // Only persist these fields
                 score: state.score,
                 highScore: state.highScore,
                 username: state.username,
-                shakes: state.shakes,
-                strikes: state.strikes,
-                freeShakes: state.freeShakes,
-                freeStrikes: state.freeStrikes,
-                lastFreebieResetDate: state.lastFreebieResetDate,
+                walletInventory: state.walletInventory,
+                legacyShakes: state.legacyShakes,
+                legacyStrikes: state.legacyStrikes,
                 lastDailyRewardClaimDate: state.lastDailyRewardClaimDate,
                 savedOrbs: state.savedOrbs,
                 isMuted: state.isMuted,

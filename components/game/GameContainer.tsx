@@ -30,6 +30,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useGameAudio } from "@/hooks/useGameAudio";
 
 export default function GameContainer() {
+    const account = useActiveAccount();
     useHighScore(); // Fetch/Sync data
 
     const { startBGM } = useGameAudio(); // Get startBGM from singleton hook
@@ -61,6 +62,8 @@ export default function GameContainer() {
         isGameOver,
         gameId,
         resetGame,
+        hardResetGame,
+        claimLegacyInventory,
         startTime,
         username
     } = useGameStore();
@@ -69,8 +72,37 @@ export default function GameContainer() {
     const [showLeaderboard, setShowLeaderboard] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
     const [showHowToPlay, setShowHowToPlay] = useState(false);
+    const [showSessionExpired, setShowSessionExpired] = useState(false);
 
-    // FTUE Check
+
+
+    // Legacy Inventory Migration
+    React.useEffect(() => {
+        if (account?.address) {
+            claimLegacyInventory(account.address);
+        }
+    }, [account, claimLegacyInventory]);
+
+    // 48-Hour Session Limit Check
+    React.useEffect(() => {
+        const checkSession = () => {
+            if (isGameOver) return;
+            const diff = Date.now() - startTime;
+            const hours48 = 48 * 60 * 60 * 1000;
+            if (diff > hours48) {
+                // Trigger Expire
+                submitCurrentScore().then(() => {
+                    hardResetGame();
+                    setShowSessionExpired(true);
+                });
+            }
+        };
+
+        // Check on mount and interval
+        checkSession();
+        const interval = setInterval(checkSession, 60000); // Check every minute
+        return () => clearInterval(interval);
+    }, [startTime, isGameOver, hardResetGame, account]);
     React.useEffect(() => {
         const hasSeen = localStorage.getItem('hasSeenHowToPlay_v2'); // v2 to force show again if logic changed
         if (!hasSeen) {
@@ -92,8 +124,6 @@ export default function GameContainer() {
     // Play Again Safety
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [resetting, setResetting] = useState(false);
-
-    const account = useActiveAccount();
 
     const submitCurrentScore = async () => {
         // ... (existing code, not modified in this chunk but needed for context if tool requires)
@@ -262,28 +292,42 @@ export default function GameContainer() {
                             <div className="flex gap-2 w-full">
                                 <InventoryButton
                                     icon={<Zap size={18} />}
-                                    count={useGameStore((state) => state.shakes)}
+                                    count={useGameStore((state) => {
+                                        const { walletInventory, legacyShakes } = state;
+                                        if (account?.address && walletInventory[account.address]) {
+                                            return walletInventory[account.address].freeShakes + walletInventory[account.address].paidShakes;
+                                        }
+                                        return legacyShakes;
+                                    })}
                                     label="Shake"
                                     color="blue"
                                     className="flex-1 justify-center"
                                     onClick={() => {
-                                        const { shakes, useShake, triggerShake } = useGameStore.getState();
-                                        if (shakes > 0) {
-                                            useShake();
+                                        const { useShake, triggerShake, getInventory } = useGameStore.getState();
+                                        const inv = getInventory(account?.address);
+                                        if (inv.totalShakes > 0) {
+                                            useShake(account?.address);
                                             triggerShake();
                                         } else setShowShop(true);
                                     }}
                                 />
                                 <InventoryButton
                                     icon={<Target size={18} />}
-                                    count={useGameStore((state) => state.strikes)}
+                                    count={useGameStore((state) => {
+                                        const { walletInventory, legacyStrikes } = state;
+                                        if (account?.address && walletInventory[account.address]) {
+                                            return walletInventory[account.address].freeStrikes + walletInventory[account.address].paidStrikes;
+                                        }
+                                        return legacyStrikes;
+                                    })}
                                     label="Laser"
                                     color="red"
                                     className="flex-1 justify-center"
                                     active={useGameStore((state) => state.laserMode)}
                                     onClick={() => {
-                                        const { strikes, toggleLaserMode, laserMode } = useGameStore.getState();
-                                        if (strikes > 0 || laserMode) toggleLaserMode();
+                                        const { toggleLaserMode, laserMode, getInventory } = useGameStore.getState();
+                                        const inv = getInventory(account?.address);
+                                        if (inv.totalStrikes > 0 || laserMode) toggleLaserMode();
                                         else setShowShop(true);
                                     }}
                                 />
@@ -359,6 +403,17 @@ export default function GameContainer() {
                     onConfirm={handleConfirmReset}
                     onClose={() => setShowResetConfirm(false)}
                     loading={resetting}
+                />
+            )}
+
+            {showSessionExpired && (
+                <ConfirmDialog
+                    isOpen={showSessionExpired}
+                    title="Session Expired"
+                    description={`Your session exceeded 48 hours. To ensure fair play, your score of ${score} has been saved and the board has been reset.`}
+                    onConfirm={() => setShowSessionExpired(false)}
+                    onClose={() => setShowSessionExpired(false)}
+                    loading={false}
                 />
             )}
 

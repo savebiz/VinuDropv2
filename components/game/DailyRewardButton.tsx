@@ -20,7 +20,6 @@ export function DailyRewardButton({ onRewardClaimed }: DailyRewardButtonProps) {
 
     // Use persistent state instead of local state
     const {
-        checkDailyFreebieReset,
         addShakes,
         addStrikes,
         lastDailyRewardClaimDate,
@@ -53,9 +52,9 @@ export function DailyRewardButton({ onRewardClaimed }: DailyRewardButtonProps) {
                 const newStreak = data.new_streak;
                 alert(`Daily Reward Claimed! Streak: ${newStreak} 🔥`);
 
-                // Grant Rewards (1 Shake, 1 Laser)
-                addShakes(1);
-                addStrikes(1);
+                // Grant Rewards (1 Shake, 1 Laser) - "Free" type
+                addShakes(1, 'free', account.address);
+                addStrikes(1, 'free', account.address);
 
                 // Mark as claimed persistantly for this wallet
                 setLastDailyRewardClaimDate(account.address, new Date().toISOString().split('T')[0]);
@@ -96,16 +95,7 @@ export function DailyRewardButton({ onRewardClaimed }: DailyRewardButtonProps) {
     // Check for timer reset
     // This is safe now because checkDailyFreebieReset checks the date internally.
     // So even if this fires on mount with "00:00:00", it won't reset unless the date actually changed.
-    useEffect(() => {
-        if (formattedTime === "00:00:00" || formattedTime === "0h 0m 0s") { // Check formats depending on hook output
-            checkDailyFreebieReset();
-        }
-    }, [formattedTime, checkDailyFreebieReset]);
 
-    // Force check on mount as well to handle "refresh" case
-    useEffect(() => {
-        checkDailyFreebieReset();
-    }, [checkDailyFreebieReset]);
 
     return (
         <div className="flex flex-col items-center">

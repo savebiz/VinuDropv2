@@ -12,12 +12,17 @@ interface MobileBottomControlsProps {
 }
 
 export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) => {
-    const { nextOrbLevel, highScore, _hasHydrated, shakes, strikes, useShake, triggerShake, toggleLaserMode, laserMode } = useGameStore();
+    const { nextOrbLevel, highScore, _hasHydrated, useShake, triggerShake, toggleLaserMode, laserMode, getInventory } = useGameStore();
     const account = useActiveAccount();
     const { trigger } = useHaptic();
     const { theme } = useTheme();
 
     const isDark = theme === 'cosmic';
+
+    // Wallet Inventory Logic
+    const inventory = getInventory(account?.address);
+    const shakes = inventory.totalShakes;
+    const strikes = inventory.totalStrikes;
 
     const safeHighScore = (highScore !== undefined && highScore !== null) ? highScore : 0;
     const safeNextLevel = (nextOrbLevel !== undefined && nextOrbLevel !== null && nextOrbLevel >= 0) ? nextOrbLevel : 0;
@@ -30,7 +35,7 @@ export const MobileBottomControls = ({ onOpenShop }: MobileBottomControlsProps) 
     const handleShake = () => {
         if (shakes > 0) {
             trigger([20]);
-            useShake();
+            useShake(account?.address);
             triggerShake();
         } else {
             trigger([10, 10]); // Error vibration
