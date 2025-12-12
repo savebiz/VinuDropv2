@@ -364,7 +364,7 @@ const PhysicsScene = React.memo(() => {
         Events.on(engine, "collisionActive", onCollisionActive);
         Events.on(engine, "collisionEnd", onCollisionEnd);
 
-        // Auto Save
+        // Auto Save (Optimized: 3s interval to reduce I/O)
         const saveInterval = setInterval(() => {
             if (useGameStore.getState().isGameOver) return;
             const bodies = Matter.Composite.allBodies(world);
@@ -377,7 +377,7 @@ const PhysicsScene = React.memo(() => {
                     level: (b as any).level
                 }));
             useGameStore.getState().setSavedOrbs(orbsToSave);
-        }, 1000);
+        }, 3000);
 
         const runner = Runner.create();
         runnerRef.current = runner;
