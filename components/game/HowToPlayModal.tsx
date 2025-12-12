@@ -54,7 +54,7 @@ export const HowToPlayModal = ({ isOpen, onClose }: HowToPlayModalProps) => {
                                 <div>
                                     <h3 className={`font-bold text-sm mb-0.5 ${isDark ? 'text-cyan-200' : 'text-cyan-700'}`}>Save Your Progress</h3>
                                     <p className={`text-xs leading-tight ${isDark ? 'text-cyan-200/70' : 'text-cyan-600/80'}`}>
-                                        <b>Connect Wallet</b> to save scores and join the leaderboard! Guest scores are lost on refresh.
+                                        <b>No Wallet? No Problem!</b> Login with <b>Email or Socials</b> to create one automatically. Connect to save scores & join the leaderboard!
                                     </p>
                                 </div>
                             </div>
