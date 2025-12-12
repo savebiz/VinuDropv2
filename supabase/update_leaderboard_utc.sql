@@ -40,7 +40,7 @@ BEGIN
     SELECT 
         rs.wallet_address,
         rs.username,
-        rs.score as max_score,
+        rs.score::bigint as max_score,
         RANK() OVER (ORDER BY rs.score DESC) as rank
     FROM ranked_scores rs
     WHERE rs.personal_rank = 1

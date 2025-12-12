@@ -82,7 +82,7 @@ BEGIN
     SELECT 
         fr.w_addr,
         fr.username,
-        fr.score,
+        fr.score::bigint,
         fr.rnk
     FROM FinalRank fr
     ORDER BY fr.rnk ASC
