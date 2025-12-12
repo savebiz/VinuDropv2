@@ -59,13 +59,13 @@ BEGIN
         WHERE 
             CASE 
                 WHEN period = 'daily' THEN 
-                    gs.created_at >= date_trunc('day', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+                    gs.played_at >= date_trunc('day', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
                 WHEN period = 'weekly' THEN 
-                    gs.created_at >= date_trunc('week', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+                    gs.played_at >= date_trunc('week', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
                 WHEN period = 'monthly' THEN 
-                    gs.created_at >= date_trunc('month', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+                    gs.played_at >= date_trunc('month', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
                 WHEN period = 'yearly' THEN 
-                    gs.created_at >= date_trunc('year', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+                    gs.played_at >= date_trunc('year', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
                 ELSE TRUE -- All Time
             END
         GROUP BY lower(gs.wallet_address)
