@@ -366,19 +366,30 @@ export const useGameStore = create<GameState>()(
             // But 'shakes' is no longer in GameState interface! 
             // So typescript is fine, but runtime might have 'shakes' property.
             // We use 'migrate' to map old state.
-            version: 1,
+            version: 2,
             migrate: (persistedState: any, version: number) => {
+                let state = persistedState;
+
                 if (version === 0) {
                     // Migration from v0 (implicit)
-                    // If user has 'shakes' or 'strikes' in localstorage, move to legacyShakes
-                    return {
-                        ...persistedState,
-                        legacyShakes: persistedState.shakes || 0,
-                        legacyStrikes: persistedState.strikes || 0,
-                        walletInventory: persistedState.walletInventory || {}
+                    state = {
+                        ...state,
+                        legacyShakes: state.shakes || 0,
+                        legacyStrikes: state.strikes || 0,
+                        walletInventory: state.walletInventory || {}
                     };
                 }
-                return persistedState as GameState;
+
+                if (version < 2) {
+                    // Reset High Score to sync with fresh DB
+                    state = {
+                        ...state,
+                        highScore: 0,
+                        score: 0
+                    };
+                }
+
+                return state as GameState;
             },
             partialize: (state) => ({
                 score: state.score,
