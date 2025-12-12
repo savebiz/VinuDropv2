@@ -9,10 +9,11 @@ import { useVFXStore } from "@/store/vfxStore";
 import { PARTICLE_COLORS } from "@/lib/assets";
 
 import confetti from "canvas-confetti";
-import { useHaptic } from "@/hooks/useHaptic";
+import { useActiveAccount } from "thirdweb/react";
 
 // Wrap in React.memo to prevent re-renders from parent state changes (like Theme)
 const PhysicsScene = React.memo(() => {
+    const account = useActiveAccount();
     const sceneRef = useRef<HTMLDivElement>(null);
     const engineRef = useRef<Matter.Engine | null>(null);
     const renderRef = useRef<Matter.Render | null>(null);
@@ -128,7 +129,7 @@ const PhysicsScene = React.memo(() => {
             const target = clickedBodies.find(b => !b.isStatic && b.label !== 'sensor');
 
             if (target) {
-                if (useStrike()) {
+                if (useStrike(account?.address)) {
                     Matter.World.remove(engineRef.current.world, target);
                     toggleLaserMode();
                     actionsRef.current.playDropSound();
