@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MousePointer2, Zap, Target, Trophy, AlertTriangle, ArrowDown, Sparkles } from "lucide-react";
+import { X, MousePointer2, Zap, Target, Trophy, AlertTriangle, ArrowDown, Sparkles, Wallet } from "lucide-react";
 import { Button } from '@/components/ui/Button';
 import { Panel } from '@/components/ui/Panel';
 import { useTheme } from '@/components/ui/ThemeProvider';
