@@ -10,6 +10,7 @@ import { PARTICLE_COLORS } from "@/lib/assets";
 
 import confetti from "canvas-confetti";
 import { useActiveAccount } from "thirdweb/react";
+import { useHaptic } from "@/hooks/useHaptic";
 
 // Wrap in React.memo to prevent re-renders from parent state changes (like Theme)
 const PhysicsScene = React.memo(() => {
