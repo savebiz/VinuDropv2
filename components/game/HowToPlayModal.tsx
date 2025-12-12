@@ -46,6 +46,19 @@ export const HowToPlayModal = ({ isOpen, onClose }: HowToPlayModalProps) => {
 
                         {/* Compact List */}
                         <div className="flex flex-col gap-3">
+                            {/* Step 0: Connect to Save */}
+                            <div className={`p-3 rounded-lg border flex gap-3 items-center ${isDark ? 'bg-cyan-500/10 border-cyan-500/20' : 'bg-cyan-50 border-cyan-200'}`}>
+                                <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${isDark ? 'bg-cyan-500/20 text-cyan-400' : 'bg-cyan-100 text-cyan-600'}`}>
+                                    <Wallet size={20} />
+                                </div>
+                                <div>
+                                    <h3 className={`font-bold text-sm mb-0.5 ${isDark ? 'text-cyan-200' : 'text-cyan-700'}`}>Save Your Progress</h3>
+                                    <p className={`text-xs leading-tight ${isDark ? 'text-cyan-200/70' : 'text-cyan-600/80'}`}>
+                                        <b>Connect Wallet</b> to save scores and join the leaderboard! Guest scores are lost on refresh.
+                                    </p>
+                                </div>
+                            </div>
+
                             {/* Step 1: Drop & Merge */}
                             <div className={`p-3 rounded-lg border flex gap-3 items-center ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
                                 <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
