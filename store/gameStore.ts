@@ -181,18 +181,31 @@ export const useGameStore = create<GameState>()(
 
             getInventory: (wallet) => {
                 const { walletInventory, legacyShakes, legacyStrikes } = get();
-                // If wallet present, return wallet inventory
-                if (wallet && walletInventory[wallet]) {
+
+                // 1. If wallet is connected, STRICTLY return that wallet's inventory (or default empty)
+                if (wallet) {
                     const inv = walletInventory[wallet];
-                    return {
-                        totalShakes: inv.freeShakes + inv.paidShakes,
-                        totalStrikes: inv.freeStrikes + inv.paidStrikes,
-                        freeShakes: inv.freeShakes,
-                        freeStrikes: inv.freeStrikes,
-                        hasClaimedWelcomePack: inv.hasClaimedWelcomePack
-                    };
+                    if (inv) {
+                        return {
+                            totalShakes: inv.freeShakes + inv.paidShakes,
+                            totalStrikes: inv.freeStrikes + inv.paidStrikes,
+                            freeShakes: inv.freeShakes,
+                            freeStrikes: inv.freeStrikes,
+                            hasClaimedWelcomePack: inv.hasClaimedWelcomePack
+                        };
+                    } else {
+                        // New wallet: Return 0s. Do NOT fallback to legacy.
+                        return {
+                            totalShakes: 0,
+                            totalStrikes: 0,
+                            freeShakes: 0,
+                            freeStrikes: 0,
+                            hasClaimedWelcomePack: false
+                        };
+                    }
                 }
-                // Fallback to legacy for guests or new wallets
+
+                // 2. Only if NO wallet (Guest), return legacy
                 return {
                     totalShakes: legacyShakes,
                     totalStrikes: legacyStrikes,
