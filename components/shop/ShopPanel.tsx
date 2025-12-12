@@ -69,6 +69,7 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
             </div>
             <div className="space-y-4">
                 {/* Shake - Disabled if Game Over */}
+                {/* Shake - Disabled if Game Over */}
                 <div className={`flex justify-between items-center p-3 rounded-lg border transition-all 
                     ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}
                     ${isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}
@@ -78,7 +79,7 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                             <Zap size={20} />
                         </div>
                         <div>
-                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Shake (x5)</h3>
+                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Shake Reactor (x5)</h3>
                             <p className={`text-xs ${isDark ? 'opacity-70 text-white' : 'text-slate-500'}`}>Jolt the board to unstuck orbs.</p>
                         </div>
                     </div>
@@ -87,15 +88,17 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                             disabled={isGameOver || !account}
                             onClick={() => {
                                 if (account) {
+                                    // Grant BOTH rewards
                                     addShakes(5, 'free', account.address);
-                                    alert("Welcome Pack Claimed! (Added 5 Free Shakes)");
+                                    addStrikes(2, 'free', account.address);
+                                    alert("Welcome Pack Claimed! (5 Shakes & 2 Lasers added to Free Stash)");
                                 } else {
                                     alert("Please connect wallet to claim.");
                                 }
                             }}
-                            className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors min-w-[100px] animate-pulse"
+                            className="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors min-w-[100px] shadow-[0_0_15px_rgba(34,197,94,0.4)] animate-pulse"
                         >
-                            Welcome (1/1)
+                            Free (1/1)
                         </button>
                     ) : (
                         <TransactionButton
@@ -122,21 +125,40 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                             <Target size={20} />
                         </div>
                         <div>
-                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Laser (x2)</h3>
+                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Precision Laser (x2)</h3>
                             <p className={`text-xs ${isDark ? 'opacity-70 text-white' : 'text-slate-500'}`}>Click to delete orb.</p>
                         </div>
                     </div>
-                    <TransactionButton
-                        disabled={isGameOver}
-                        transaction={() => buyItem("strike", "250")}
-                        onTransactionConfirmed={() => {
-                            if (account) addStrikes(2, 'paid', account.address);
-                            alert("Purchased 2 Precision Lasers!");
-                        }}
-                        className="!bg-red-600 !text-white !text-sm !py-2 !px-4 !min-w-[100px]"
-                    >
-                        250 VC
-                    </TransactionButton>
+                    {!hasClaimedWelcomePack ? (
+                        <button
+                            disabled={isGameOver || !account}
+                            onClick={() => {
+                                if (account) {
+                                    // Grant BOTH rewards
+                                    addShakes(5, 'free', account.address);
+                                    addStrikes(2, 'free', account.address);
+                                    alert("Welcome Pack Claimed! (5 Shakes & 2 Lasers added to Free Stash)");
+                                } else {
+                                    alert("Please connect wallet to claim.");
+                                }
+                            }}
+                            className="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors min-w-[100px] shadow-[0_0_15px_rgba(34,197,94,0.4)] animate-pulse"
+                        >
+                            Free (1/1)
+                        </button>
+                    ) : (
+                        <TransactionButton
+                            disabled={isGameOver}
+                            transaction={() => buyItem("strike", "250")}
+                            onTransactionConfirmed={() => {
+                                if (account) addStrikes(2, 'paid', account.address);
+                                alert("Purchased 2 Precision Lasers!");
+                            }}
+                            className="!bg-red-600 !text-white !text-sm !py-2 !px-4 !min-w-[100px]"
+                        >
+                            250 VC
+                        </TransactionButton>
+                    )}
                 </div>
 
                 {/* Revive - Disabled if Game Active (NOT Game Over) */}
