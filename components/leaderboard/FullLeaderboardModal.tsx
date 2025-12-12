@@ -55,6 +55,7 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
                 .rpc('get_leaderboard', { period });
 
             if (error) throw error;
+            console.log("Leaderboard fetch result:", data);
             setTopScores(data || []);
         } catch (err) {
             console.error("Fetch leaderboard error:", err);
@@ -135,11 +136,13 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
                         </span>
                     </h2>
 
-                    <div className="flex flex-col md:flex-row items-center gap-3 mt-2">
-                        <p className={`text-sm font-medium ${isDark ? 'text-cyan-200/50' : 'text-slate-500'}`}>
+                    <div className="flex flex-col items-center mt-2 w-full">
+                        <p className={`text-sm font-medium mb-2 ${isDark ? 'text-cyan-200/50' : 'text-slate-500'}`}>
                             Top Players & Champions
                         </p>
-                        <LeaderboardTimer period={period} isDark={isDark} />
+                        <div className="flex justify-center">
+                            <LeaderboardTimer period={period} isDark={isDark} />
+                        </div>
                     </div>
                 </div>
 

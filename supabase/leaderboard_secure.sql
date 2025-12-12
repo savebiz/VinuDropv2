@@ -48,28 +48,26 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-    start_date TIMESTAMP WITH TIME ZONE;
 BEGIN
     -- Determine time window
-    IF period = 'daily' THEN
-        start_date := NOW() - INTERVAL '1 day';
-    ELSIF period = 'weekly' THEN
-        start_date := NOW() - INTERVAL '1 week';
-    ELSIF period = 'monthly' THEN
-        start_date := NOW() - INTERVAL '1 month';
-    ELSIF period = 'yearly' THEN
-        start_date := NOW() - INTERVAL '1 year';
-    ELSE
-        start_date := '1970-01-01'; -- All time
-    END IF;
-
     RETURN QUERY
     WITH RankedScores AS (
         SELECT 
             lower(gs.wallet_address) as w_addr,
             MAX(gs.score) as score
         FROM game_scores gs
-        WHERE gs.played_at >= start_date
+        WHERE 
+            CASE 
+                WHEN period = 'daily' THEN 
+                    gs.created_at >= date_trunc('day', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+                WHEN period = 'weekly' THEN 
+                    gs.created_at >= date_trunc('week', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+                WHEN period = 'monthly' THEN 
+                    gs.created_at >= date_trunc('month', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+                WHEN period = 'yearly' THEN 
+                    gs.created_at >= date_trunc('year', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+                ELSE TRUE -- All Time
+            END
         GROUP BY lower(gs.wallet_address)
     ),
     FinalRank as (

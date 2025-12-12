@@ -1,6 +1,8 @@
 -- Update get_leaderboard to use STRICT UTC Truncation for standardized resets.
 -- This ensures the leaderboard resets exactly at 00:00 UTC, regardless of server timezone.
 
+DROP FUNCTION IF EXISTS get_leaderboard(text);
+
 CREATE OR REPLACE FUNCTION get_leaderboard(period text)
 RETURNS TABLE (
     wallet_address text,
@@ -10,6 +12,7 @@ RETURNS TABLE (
 ) 
 LANGUAGE plpgsql
 SECURITY DEFINER
+Set search_path = public
 AS $$
 BEGIN
     RETURN QUERY
@@ -24,13 +27,13 @@ BEGIN
         WHERE 
             CASE 
                 WHEN period = 'daily' THEN 
-                    gs.created_at >= date_trunc('day', now() at time zone 'utc')
+                    gs.created_at >= date_trunc('day', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
                 WHEN period = 'weekly' THEN 
-                    gs.created_at >= date_trunc('week', now() at time zone 'utc')
+                    gs.created_at >= date_trunc('week', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
                 WHEN period = 'monthly' THEN 
-                    gs.created_at >= date_trunc('month', now() at time zone 'utc')
+                    gs.created_at >= date_trunc('month', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
                 WHEN period = 'yearly' THEN 
-                    gs.created_at >= date_trunc('year', now() at time zone 'utc')
+                    gs.created_at >= date_trunc('year', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
                 ELSE TRUE -- All Time
             END
     )
