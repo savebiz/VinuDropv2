@@ -5,7 +5,7 @@
 import React from "react";
 import { Panel } from "@/components/ui/Panel";
 import { useGameStore } from "@/store/gameStore";
-import { TransactionButton } from "thirdweb/react";
+import { TransactionButton, useActiveAccount } from "thirdweb/react";
 import { prepareContractCall, toWei } from "thirdweb";
 import { VINU_ECONOMY_CONTRACT_ADDRESS } from "@/lib/constants";
 import { client } from "@/app/client";
@@ -25,20 +25,24 @@ interface ShopPanelProps {
     onClose?: () => void;
 }
 
+
+
 export function ShopPanel({ onClose }: ShopPanelProps) {
+    const account = useActiveAccount();
     const {
         addShakes,
         addStrikes,
         triggerRevive,
-        freeShakes,
-        freeStrikes,
-        consumeFreeShake,
-        consumeFreeStrike,
-        isGameOver
+        isGameOver,
+        getInventory
     } = useGameStore();
 
     const { theme } = useTheme();
     const isDark = theme === 'cosmic';
+
+    // Get Wallet Inventory
+    const inventory = getInventory(account?.address);
+    const { freeShakes, freeStrikes, hasClaimedWelcomePack } = inventory;
 
     const buyItem = (itemName: string, price: string) => {
         return prepareContractCall({
@@ -74,29 +78,31 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                             <Zap size={20} />
                         </div>
                         <div>
-                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Shake Reactor (x5)</h3>
+                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Shake (x5)</h3>
                             <p className={`text-xs ${isDark ? 'opacity-70 text-white' : 'text-slate-500'}`}>Jolt the board to unstuck orbs.</p>
                         </div>
                     </div>
-                    {freeShakes > 0 ? (
+                    {!hasClaimedWelcomePack ? (
                         <button
-                            disabled={isGameOver}
+                            disabled={isGameOver || !account}
                             onClick={() => {
-                                if (consumeFreeShake()) {
-                                    addShakes(5);
-                                    alert("Used Daily Free Shake! (Added 5 Shakes)");
+                                if (account) {
+                                    addShakes(5, 'free', account.address);
+                                    alert("Welcome Pack Claimed! (Added 5 Free Shakes)");
+                                } else {
+                                    alert("Please connect wallet to claim.");
                                 }
                             }}
-                            className="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors min-w-[100px]"
+                            className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors min-w-[100px] animate-pulse"
                         >
-                            Free (1/1)
+                            Welcome (1/1)
                         </button>
                     ) : (
                         <TransactionButton
                             disabled={isGameOver}
                             transaction={() => buyItem("shake", "200")}
                             onTransactionConfirmed={() => {
-                                addShakes(5);
+                                if (account) addShakes(5, 'paid', account.address);
                                 alert("Purchased 5 Shakes!");
                             }}
                             className="!bg-blue-600 !text-white !text-sm !py-2 !px-4 !min-w-[100px]"
@@ -116,36 +122,21 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                             <Target size={20} />
                         </div>
                         <div>
-                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Precision Laser (x2)</h3>
+                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Laser (x2)</h3>
                             <p className={`text-xs ${isDark ? 'opacity-70 text-white' : 'text-slate-500'}`}>Click to delete orb.</p>
                         </div>
                     </div>
-                    {freeStrikes > 0 ? (
-                        <button
-                            disabled={isGameOver}
-                            onClick={() => {
-                                if (consumeFreeStrike()) {
-                                    addStrikes(2);
-                                    alert("Used Daily Free Laser! (Added 2 Lasers)");
-                                }
-                            }}
-                            className="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors min-w-[100px]"
-                        >
-                            Free (1/1)
-                        </button>
-                    ) : (
-                        <TransactionButton
-                            disabled={isGameOver}
-                            transaction={() => buyItem("strike", "250")}
-                            onTransactionConfirmed={() => {
-                                addStrikes(2);
-                                alert("Purchased 2 Precision Lasers!");
-                            }}
-                            className="!bg-red-600 !text-white !text-sm !py-2 !px-4 !min-w-[100px]"
-                        >
-                            250 VC
-                        </TransactionButton>
-                    )}
+                    <TransactionButton
+                        disabled={isGameOver}
+                        transaction={() => buyItem("strike", "250")}
+                        onTransactionConfirmed={() => {
+                            if (account) addStrikes(2, 'paid', account.address);
+                            alert("Purchased 2 Precision Lasers!");
+                        }}
+                        className="!bg-red-600 !text-white !text-sm !py-2 !px-4 !min-w-[100px]"
+                    >
+                        250 VC
+                    </TransactionButton>
                 </div>
 
                 {/* Revive - Disabled if Game Active (NOT Game Over) */}
