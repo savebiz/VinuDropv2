@@ -42,7 +42,7 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
 
     // Get Wallet Inventory
     const inventory = getInventory(account?.address);
-    const { freeShakes, freeStrikes, hasClaimedWelcomePack } = inventory;
+    const { freeShakes, freeStrikes, hasClaimedWelcomeShakes, hasClaimedWelcomeLasers } = inventory;
 
     const buyItem = (itemName: string, price: string) => {
         return prepareContractCall({
@@ -69,7 +69,6 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
             </div>
             <div className="space-y-4">
                 {/* Shake - Disabled if Game Over */}
-                {/* Shake - Disabled if Game Over */}
                 <div className={`flex justify-between items-center p-3 rounded-lg border transition-all 
                     ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}
                     ${isGameOver ? 'opacity-40 grayscale pointer-events-none' : ''}`}
@@ -83,15 +82,13 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                             <p className={`text-xs ${isDark ? 'opacity-70 text-white' : 'text-slate-500'}`}>Jolt the board to unstuck orbs.</p>
                         </div>
                     </div>
-                    {!hasClaimedWelcomePack ? (
+                    {!hasClaimedWelcomeShakes ? (
                         <button
                             disabled={isGameOver || !account}
                             onClick={() => {
                                 if (account) {
-                                    // Grant BOTH rewards
                                     addShakes(5, 'free', account.address);
-                                    addStrikes(2, 'free', account.address);
-                                    alert("Welcome Pack Claimed! (5 Shakes & 2 Lasers added to Free Stash)");
+                                    alert("Welcome Pack: 5 Free Shakes Claimed!");
                                 } else {
                                     alert("Please connect wallet to claim.");
                                 }
@@ -129,15 +126,13 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                             <p className={`text-xs ${isDark ? 'opacity-70 text-white' : 'text-slate-500'}`}>Click to delete orb.</p>
                         </div>
                     </div>
-                    {!hasClaimedWelcomePack ? (
+                    {!hasClaimedWelcomeLasers ? (
                         <button
                             disabled={isGameOver || !account}
                             onClick={() => {
                                 if (account) {
-                                    // Grant BOTH rewards
-                                    addShakes(5, 'free', account.address);
                                     addStrikes(2, 'free', account.address);
-                                    alert("Welcome Pack Claimed! (5 Shakes & 2 Lasers added to Free Stash)");
+                                    alert("Welcome Pack: 2 Free Lasers Claimed!");
                                 } else {
                                     alert("Please connect wallet to claim.");
                                 }

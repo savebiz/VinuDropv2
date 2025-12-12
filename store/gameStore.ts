@@ -13,7 +13,8 @@ export interface UserInventory {
     paidShakes: number;
     freeStrikes: number;
     paidStrikes: number;
-    hasClaimedWelcomePack: boolean;
+    hasClaimedWelcomeShakes: boolean;
+    hasClaimedWelcomeLasers: boolean;
 }
 
 const MAX_FREE_SHAKES = 12;
@@ -56,7 +57,14 @@ interface GameState {
     useShake: (wallet?: string) => boolean;
     addStrikes: (amount: number, type: 'free' | 'paid', wallet?: string) => void;
     useStrike: (wallet?: string) => boolean;
-    getInventory: (wallet?: string) => { totalShakes: number, totalStrikes: number, freeShakes: number, freeStrikes: number, hasClaimedWelcomePack: boolean };
+    getInventory: (wallet?: string) => {
+        totalShakes: number,
+        totalStrikes: number,
+        freeShakes: number,
+        freeStrikes: number,
+        hasClaimedWelcomeShakes: boolean,
+        hasClaimedWelcomeLasers: boolean
+    };
 
     // Migration
     claimLegacyInventory: (wallet: string) => void;
@@ -91,7 +99,8 @@ const DEFAULT_INVENTORY: UserInventory = {
     paidShakes: 0,
     freeStrikes: 0,
     paidStrikes: 0,
-    hasClaimedWelcomePack: false
+    hasClaimedWelcomeShakes: false,
+    hasClaimedWelcomeLasers: false
 };
 
 export const useGameStore = create<GameState>()(
@@ -155,17 +164,17 @@ export const useGameStore = create<GameState>()(
                 gameId: crypto.randomUUID(),
                 savedOrbs: [],
                 // NOTE: startTime is NOT reset here to track session length accurately across retries?
-                // Actually user requested 48h session reset. 
+                // Actually user requested 48h session reset.
                 // "Clean Game Jar every other day... to prevent continuous play."
                 // So regular reset should NOT reset startTime if we track "Session" vs "Game Round".
-                // But for now, let's keep startTime reset on Game Over retry to be simple, 
-                // UNLESS the 48h check is against a persistent "SessionStart". 
-                // Let's assume startTime = Game Round Start. 
+                // But for now, let's keep startTime reset on Game Over retry to be simple,
+                // UNLESS the 48h check is against a persistent "SessionStart".
+                // Let's assume startTime = Game Round Start.
                 // The 48h check implies a "season" or "session" concept.
-                // For simplicity, let's treat startTime as "Round Start". 
+                // For simplicity, let's treat startTime as "Round Start".
                 // If the user wants to limit "Session", we might need a separate timestamp.
-                // However, the prompt says "prevent continuous play after two days". 
-                // This implies a long-running game. 
+                // However, the prompt says "prevent continuous play after two days".
+                // This implies a long-running game.
                 // So if I play for 48h straight, I get kicked.
                 startTime: Date.now(),
             }),
@@ -191,7 +200,8 @@ export const useGameStore = create<GameState>()(
                             totalStrikes: inv.freeStrikes + inv.paidStrikes,
                             freeShakes: inv.freeShakes,
                             freeStrikes: inv.freeStrikes,
-                            hasClaimedWelcomePack: inv.hasClaimedWelcomePack
+                            hasClaimedWelcomeShakes: inv.hasClaimedWelcomeShakes || false,
+                            hasClaimedWelcomeLasers: inv.hasClaimedWelcomeLasers || false
                         };
                     } else {
                         // New wallet: Return 0s. Do NOT fallback to legacy.
@@ -200,7 +210,8 @@ export const useGameStore = create<GameState>()(
                             totalStrikes: 0,
                             freeShakes: 0,
                             freeStrikes: 0,
-                            hasClaimedWelcomePack: false
+                            hasClaimedWelcomeShakes: false,
+                            hasClaimedWelcomeLasers: false
                         };
                     }
                 }
@@ -211,7 +222,8 @@ export const useGameStore = create<GameState>()(
                     totalStrikes: legacyStrikes,
                     freeShakes: 0,
                     freeStrikes: 0,
-                    hasClaimedWelcomePack: false
+                    hasClaimedWelcomeShakes: false,
+                    hasClaimedWelcomeLasers: false
                 };
             },
 
@@ -234,9 +246,9 @@ export const useGameStore = create<GameState>()(
                     // If full, do nothing (or we could handle partial adds, but '1' is usual)
                 }
 
-                // Mark welcome pack if this was a free claim (optional validation, mostly handled by button)
-                if (type === 'free' && amount >= 5) { // Assuming welcome pack is 5
-                    newInv.hasClaimedWelcomePack = true;
+                // Welcome Check
+                if (type === 'free' && amount >= 5) { // Assuming welcome pack is 5 shakes
+                    newInv.hasClaimedWelcomeShakes = true;
                 }
 
                 return {
@@ -258,6 +270,11 @@ export const useGameStore = create<GameState>()(
                     } else if (newInv.freeStrikes < MAX_FREE_STRIKES) {
                         newInv.freeStrikes = MAX_FREE_STRIKES;
                     }
+                }
+
+                // Welcome Check
+                if (type === 'free' && amount >= 2) { // Assuming welcome pack is 2 strikes
+                    newInv.hasClaimedWelcomeLasers = true;
                 }
 
                 return {
