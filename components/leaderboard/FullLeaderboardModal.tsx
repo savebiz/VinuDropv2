@@ -177,8 +177,7 @@ export default function FullLeaderboardModal({ isOpen, onClose }: FullLeaderboar
                         <div className={`text-center py-20 flex flex-col items-center gap-2
                             ${isDark ? 'text-white/50' : 'text-slate-400'}`}
                         >
-                            <User className="w-8 h-8 opacity-20" />
-                            No scores yet. Please check your internet connection.
+                            No scores yet.
                         </div>
                     ) : (
                         topScores.map((player) => (

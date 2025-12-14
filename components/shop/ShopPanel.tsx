@@ -84,7 +84,7 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                     </div>
                     {!hasClaimedWelcomeShakes ? (
                         <button
-                            disabled={isGameOver || !account}
+                            disabled={isGameOver}
                             onClick={() => {
                                 if (account) {
                                     addShakes(5, 'free', account.address);
@@ -128,7 +128,7 @@ export function ShopPanel({ onClose }: ShopPanelProps) {
                     </div>
                     {!hasClaimedWelcomeLasers ? (
                         <button
-                            disabled={isGameOver || !account}
+                            disabled={isGameOver}
                             onClick={() => {
                                 if (account) {
                                     addStrikes(2, 'free', account.address);
