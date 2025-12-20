@@ -240,12 +240,19 @@ const PhysicsScene = React.memo(() => {
         // Collision Handlers
         const onCollisionStart = (event: any) => {
             const pairs = event.pairs;
+            const processedIds = new Set<number>();
+
             pairs.forEach((pair: any) => {
                 const bodyA = pair.bodyA;
                 const bodyB = pair.bodyB;
 
+                if (processedIds.has(bodyA.id) || processedIds.has(bodyB.id)) return;
+
                 // @ts-ignore
                 if (bodyA.level !== undefined && bodyB.level !== undefined && bodyA.level === bodyB.level) {
+                    processedIds.add(bodyA.id);
+                    processedIds.add(bodyB.id);
+
                     // @ts-ignore
                     const level = bodyA.level;
                     if (level < ORB_LEVELS.length - 1) {

@@ -366,7 +366,7 @@ export const useGameStore = create<GameState>()(
             // But 'shakes' is no longer in GameState interface! 
             // So typescript is fine, but runtime might have 'shakes' property.
             // We use 'migrate' to map old state.
-            version: 2,
+            version: 3,
             migrate: (persistedState: any, version: number) => {
                 let state = persistedState;
 
@@ -380,8 +380,8 @@ export const useGameStore = create<GameState>()(
                     };
                 }
 
-                if (version < 2) {
-                    // Reset High Score to sync with fresh DB
+                if (version < 3) {
+                    // Global Reset Request: Clear High Scores for everyone
                     state = {
                         ...state,
                         highScore: 0,
