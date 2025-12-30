@@ -80,6 +80,12 @@ const PhysicsScene = React.memo(() => {
 
         setGameOver(false);
 
+        // FIX: Restart Runner if stopped (fixes Revive Hang)
+        if (runnerRef.current && runnerRef.current.enabled === false) {
+            const Runner = Matter.Runner;
+            Runner.run(runnerRef.current, engineRef.current);
+        }
+
     }, [reviveTrigger, setGameOver]);
 
     // Shake Logic (Reactor)
@@ -250,6 +256,10 @@ const PhysicsScene = React.memo(() => {
 
                 // @ts-ignore
                 if (bodyA.level !== undefined && bodyB.level !== undefined && bodyA.level === bodyB.level) {
+                    // FIX: Zombie Orb Prevention - Ignore already merged bodies
+                    // @ts-ignore
+                    if (bodyA.isDead || bodyB.isDead) return;
+
                     processedIds.add(bodyA.id);
                     processedIds.add(bodyB.id);
 
@@ -259,6 +269,12 @@ const PhysicsScene = React.memo(() => {
                         const newLevel = level + 1;
                         const midX = (bodyA.position.x + bodyB.position.x) / 2;
                         const midY = (bodyA.position.y + bodyB.position.y) / 2;
+
+                        // Mark as dead immediately to prevent double-processing
+                        // @ts-ignore
+                        bodyA.isDead = true;
+                        // @ts-ignore
+                        bodyB.isDead = true;
 
                         World.remove(world, [bodyA, bodyB]);
 
@@ -319,6 +335,12 @@ const PhysicsScene = React.memo(() => {
                             });
                         }
                     } else {
+                        // Max Level Merge (Just Remove)
+                        // @ts-ignore
+                        bodyA.isDead = true;
+                        // @ts-ignore
+                        bodyB.isDead = true;
+
                         World.remove(world, [bodyA, bodyB]);
                         actionsRef.current.addScore(ORB_LEVELS[level].score * 2);
                         actionsRef.current.playMergeSound(level);
@@ -401,6 +423,7 @@ const PhysicsScene = React.memo(() => {
             if (render.canvas) render.canvas.remove();
             World.clear(world, false);
             Engine.clear(engine);
+            confetti.reset(); // FIX: Clear confetti on unmount
         };
     }, [addScore, setGameOver]);
 

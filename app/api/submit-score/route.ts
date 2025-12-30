@@ -19,18 +19,23 @@ export async function POST(request: Request) {
         // --- Anti-Cheat Validation ---
         const durationSeconds = (endTime - startTime) / 1000;
 
-        // Impossible to score > 0 in < 2 seconds (naive check)
-        if (durationSeconds < 2 && score > 0) {
-            console.warn(`Anti-Cheat Flag: Wallet ${wallet} scored ${score} in ${durationSeconds}s`);
+        // 1. Minimum Duration Check: Impossible to score significantly in very short time
+        // Reject > 5000 points if duration < 30s
+        if (score > 5000 && durationSeconds < 30) {
+            console.warn(`Anti-Cheat Rejection: Speed Hack. Wallet ${wallet} scored ${score} in ${durationSeconds}s`);
             return NextResponse.json({ error: 'Score rejected: Duration too short' }, { status: 403 });
         }
 
-        // More complex heuristic: ~100 points per second cap?
-        // Let's be lenient for now, just filtering automated instant submissions.
-        // A typical "Suika" game takes minutes for high scores.
-        if (score > 1000 && durationSeconds < 10) {
-            console.warn(`Anti-Cheat Flag: High score fast: ${score} in ${durationSeconds}s`);
-            return NextResponse.json({ error: 'Score rejected: Suspicious activity' }, { status: 403 });
+        // 2. Strict PPS (Points Per Second) Cap
+        // Max theoretical points per merge is ~220. 
+        // 500 PPS implies merging high level orbs 2+ times EVERY SECOND steadily.
+        // Glitchers/Bots achieve 7k - 160k PPS.
+        const MAX_PPS = 500;
+        const pps = score / Math.max(durationSeconds, 1); // Avoid div by zero
+
+        if (pps > MAX_PPS) {
+            console.warn(`Anti-Cheat Rejection: PPS Limit Exceeded. Wallet ${wallet}: ${pps.toFixed(2)} PPS (${score} / ${durationSeconds}s)`);
+            return NextResponse.json({ error: 'Score rejected: Suspicious activity (PPS Limit)' }, { status: 403 });
         }
         // -----------------------------
 
